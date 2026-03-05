@@ -1,3 +1,5 @@
+.cache/
+.claude/
 site/
 .venv/
 __pycache__/
@@ -8,4 +10,4 @@ __pycache__/
 PLUGINS.md
 docs/plugins.md
 docs/plugins/
-docs/installation.md
+docs/installing/

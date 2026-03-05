@@ -1,26 +1,10 @@
+---
+icon: lucide/home
+---
+
 # Red Hat Docs Agent Tools
 
 A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows.
-
-## Quick start
-
-1. Add the marketplace:
-
-    ```
-    /plugin marketplace add aireilly/redhat-docs-agent-tools
-    ```
-
-2. Install a plugin:
-
-    ```
-    /plugin install hello-world@redhat-docs-agent-tools
-    ```
-
-3. Use a command:
-
-    ```
-    /hello-world:greet
-    ```
 
 ## Explore
 
@@ -40,7 +24,7 @@ A collection of Claude Code plugins, skills, and agent tools for Red Hat documen
 
     Get set up with the marketplace and install plugins
 
-    [:octicons-arrow-right-24: Install guide](installation.md)
+    [:octicons-arrow-right-24: Install guide](installing/index.md)
 
 -   :material-account-plus:{ .lg .middle } **Contributing**
 
@@ -48,6 +32,6 @@ A collection of Claude Code plugins, skills, and agent tools for Red Hat documen
 
     Learn how to create and submit your own plugins
 
-    [:octicons-arrow-right-24: Contribute](contributing.md)
+    [:octicons-arrow-right-24: Contribute](contributing/index.md)
 
 </div>

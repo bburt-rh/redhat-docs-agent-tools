@@ -1,84 +1,120 @@
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 145"><defs><style>.cls-1{fill:#e00;}</style></defs><title>The hat</title><metadata><?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 8.0-c001 1.000000, 0000/00/00-00:00:00        ">
-   <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-      <rdf:Description rdf:about=""
-            xmlns:cq="http://www.day.com/jcr/cq/1.0"
-            xmlns:xmp="http://ns.adobe.com/xap/1.0/"
-            xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
-            xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/">
-         <cq:lastReplicationAction_scene7>Activate</cq:lastReplicationAction_scene7>
-         <cq:lastReplicatedBy>workflow-process-service</cq:lastReplicatedBy>
-         <cq:lastReplicatedBy_publish>workflow-process-service</cq:lastReplicatedBy_publish>
-         <cq:lastReplicationAction_publish>Activate</cq:lastReplicationAction_publish>
-         <cq:lastReplicated_publish>2025-05-28T17:40:38.312Z</cq:lastReplicated_publish>
-         <cq:lastReplicated_scene7>2025-05-28T17:40:38.312Z</cq:lastReplicated_scene7>
-         <cq:lastReplicatedBy_scene7>workflow-process-service</cq:lastReplicatedBy_scene7>
-         <cq:lastReplicationAction>Activate</cq:lastReplicationAction>
-         <cq:lastReplicated>2025-05-28T17:40:38.312Z</cq:lastReplicated>
-         <cq:isDelivered>false</cq:isDelivered>
-         <xmp:rhcc-file-last-modified>2025-01-24T16:11:27.984Z</xmp:rhcc-file-last-modified>
-         <xmp:rhcc-effective-on-set-on-upload>true</xmp:rhcc-effective-on-set-on-upload>
-         <xmp:rhcc-published-asset-email-sent>true</xmp:rhcc-published-asset-email-sent>
-         <xmp:rhcc-translation-id>TRAa0571f1a-3051-42d5-ba75-9d7f087048fb</xmp:rhcc-translation-id>
-         <xmp:rhcc-metadata-complete-moderator>pending</xmp:rhcc-metadata-complete-moderator>
-         <xmp:brand-logo-version>Hat only</xmp:brand-logo-version>
-         <xmp:brand-content-type>Logo</xmp:brand-content-type>
-         <xmp:CreateDate>2023-12-08T20:43:03.055Z</xmp:CreateDate>
-         <xmp:rhcc-uploaded-by>pmeilleu@redhat.com</xmp:rhcc-uploaded-by>
-         <xmp:rhcc-notify-portal-subscribers-on-change>yes</xmp:rhcc-notify-portal-subscribers-on-change>
-         <xmp:rhcc-derivative-id>DERa0571f1a-3051-42d5-ba75-9d7f087048fb</xmp:rhcc-derivative-id>
-         <xmp:rhcc-effective-on>2023-12-08T20:43:03.055Z</xmp:rhcc-effective-on>
-         <xmp:brand-content-subtype>Red Hat</xmp:brand-content-subtype>
-         <xmp:brand-color-mode>RGB</xmp:brand-color-mode>
-         <xmp:brand-logo-color>Standard</xmp:brand-logo-color>
-         <xmp:rhcc-publish-url>https://content.redhat.com/content/dam/brand/logos/red-hat/Logo-Red_Hat-Hat_icon-Red-RGB.svg</xmp:rhcc-publish-url>
-         <xmp:rhcc-aspect-ratio>wide</xmp:rhcc-aspect-ratio>
-         <xmp:rhcc-metadata-complete-uploader>pending</xmp:rhcc-metadata-complete-uploader>
-         <xmp:rhcc-audience>rhcc-audience:internal</xmp:rhcc-audience>
-         <xmp:rhcc-rights-restricted>no</xmp:rhcc-rights-restricted>
-         <xmp:brand-colorway>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Layer_1"
+   data-name="Layer 1"
+   viewBox="0 0 192 195"
+   version="1.1"
+   sodipodi:docname="logo.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:x="adobe:ns:meta/"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:xmp="http://ns.adobe.com/xap/1.0/"
+   xmlns:cq="http://www.day.com/jcr/cq/1.0"
+   xmlns:tiff="http://ns.adobe.com/tiff/1.0/"
+   xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/">
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#111111"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.2307692"
+     inkscape:cx="95.963636"
+     inkscape:cy="93.481818"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Layer_1" />
+  <defs
+     id="defs1">
+    <style
+       id="style1">.cls-1{fill:#e00;}.cls-2{fill:#fff;}</style>
+  </defs>
+  <title
+     id="title1">Red Hat logo</title>
+  <metadata
+     id="metadata1">
+<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>    <x:xmpmeta
+       x:xmptk="Adobe XMP Core 8.0-c001 1.000000, 0000/00/00-00:00:00        ">
+      <rdf:RDF>
+        <rdf:Description
+           rdf:about="">
+          <xmp:CreateDate>2023-12-08T20:43:04.057Z</xmp:CreateDate>
+          <xmp:rhcc-translation-id>TRA3457bf5f-85e1-4b25-9406-e7def2f68c25</xmp:rhcc-translation-id>
+          <xmp:rhcc-aspect-ratio>portrait</xmp:rhcc-aspect-ratio>
+          <xmp:brand-content-type>Logo</xmp:brand-content-type>
+          <xmp:brand-color-mode>RGB</xmp:brand-color-mode>
+          <xmp:rhcc-audience>rhcc-audience:internal</xmp:rhcc-audience>
+          <xmp:brand-content-subtype>Red Hat</xmp:brand-content-subtype>
+          <xmp:rhcc-uploaded-by>pmeilleu@redhat.com</xmp:rhcc-uploaded-by>
+          <xmp:rhcc-effective-on-set-on-upload>true</xmp:rhcc-effective-on-set-on-upload>
+          <xmp:rhcc-metadata-complete-moderator>pending</xmp:rhcc-metadata-complete-moderator>
+          <xmp:rhcc-file-last-modified>2025-01-24T16:09:38.877Z</xmp:rhcc-file-last-modified>
+          <xmp:rhcc-derivative-id>DER3457bf5f-85e1-4b25-9406-e7def2f68c25</xmp:rhcc-derivative-id>
+          <xmp:rhcc-rights-restricted>no</xmp:rhcc-rights-restricted>
+          <xmp:brand-logo-version>Stacked</xmp:brand-logo-version>
+          <xmp:rhcc-effective-on>2023-12-08T20:43:04.057Z</xmp:rhcc-effective-on>
+          <xmp:rhcc-metadata-complete-uploader>pending</xmp:rhcc-metadata-complete-uploader>
+          <xmp:brand-logo-color>Reverse</xmp:brand-logo-color>
+          <xmp:rhcc-notify-portal-subscribers-on-change>yes</xmp:rhcc-notify-portal-subscribers-on-change>
+          <xmp:brand-colorway>
             <rdf:Bag>
-               <rdf:li>colorway:red</rdf:li>
+              <rdf:li>colorway:reverse</rdf:li>
             </rdf:Bag>
-         </xmp:brand-colorway>
-         <dc:modified>2023-12-12T20:26:04.403Z</dc:modified>
-         <dc:format>image/svg+xml</dc:format>
-         <dc:title>
+          </xmp:brand-colorway>
+          <cq:lastReplicated_publish>2024-10-02T19:57:24.860Z</cq:lastReplicated_publish>
+          <cq:isDelivered>false</cq:isDelivered>
+          <cq:lastReplicatedBy>workflow-process-service</cq:lastReplicatedBy>
+          <cq:lastReplicationAction_publish>Activate</cq:lastReplicationAction_publish>
+          <cq:lastReplicatedBy_scene7>workflow-process-service</cq:lastReplicatedBy_scene7>
+          <cq:lastReplicated>2024-10-02T19:57:24.860Z</cq:lastReplicated>
+          <cq:lastReplicated_scene7>2024-10-02T19:57:24.860Z</cq:lastReplicated_scene7>
+          <cq:lastReplicationAction>Activate</cq:lastReplicationAction>
+          <cq:lastReplicatedBy_publish>workflow-process-service</cq:lastReplicatedBy_publish>
+          <cq:lastReplicationAction_scene7>Activate</cq:lastReplicationAction_scene7>
+          <dc:format>image/svg+xml</dc:format>
+          <dc:modified>2024-05-29T00:32:05.758Z</dc:modified>
+          <dc:title>
             <rdf:Alt>
-               <rdf:li xml:lang="x-default">The hat</rdf:li>
+              <rdf:li
+                 xml:lang="x-default">Red Hat logo</rdf:li>
             </rdf:Alt>
-         </dc:title>
-         <tiff:ImageWidth>192</tiff:ImageWidth>
-         <tiff:ImageLength>145</tiff:ImageLength>
-         <xmpRights:UsageTerms>
+          </dc:title>
+          <tiff:ImageWidth>192</tiff:ImageWidth>
+          <tiff:ImageLength>195</tiff:ImageLength>
+          <xmpRights:UsageTerms>
             <rdf:Alt>
-               <rdf:li xml:lang="x-default">How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xA;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.,How we use the hat depends on what it represents in the design. When we use the hat to represent Red Hat in lieu of the full logo, the hat should always appear in red.&#xD;&#xA;&#xD;&#xA;When we use the hat as a decorative element, the full Red Hat logo should always be nearby.</rdf:li>
+              <rdf:li
+                 xml:lang="x-default">Logo C should only be used for large-scale signage. The combination of small text and a stacked layout is ideal for making the most of larger square spaces, like signage.
+
+The clear space should be at least twice the height of the letter &quot;e&quot; all the way around the logo.,Logo C should only be used for large-scale signage. The combination of small text and a stacked layout is ideal for making the most of larger square spaces, like signage.
+
+The clear space should be at least twice the height of the letter &quot;e&quot; all the way around the logo.,Logo C should only be used for large-scale signage. The combination of small text and a stacked layout is ideal for making the most of larger square spaces, like signage.
+
+The clear space should be at least twice the height of the letter &quot;e&quot; all the way around the logo.,Logo C should only be used for large-scale signage. The combination of small text and a stacked layout is ideal for making the most of larger square spaces, like signage.
+
+The clear space should be at least twice the height of the letter &quot;e&quot; all the way around the logo.</rdf:li>
             </rdf:Alt>
-         </xmpRights:UsageTerms>
-      </rdf:Description>
-   </rdf:RDF>
-</x:xmpmeta>
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                           
-<?xpacket end="w"?></metadata>
-<path class="cls-1" d="M127.47,83.49c12.51,0,30.61-2.58,30.61-17.46a14,14,0,0,0-.31-3.42l-7.45-32.36c-1.72-7.12-3.23-10.35-15.73-16.6C124.89,8.69,103.76.5,97.51.5,91.69.5,90,8,83.06,8c-6.68,0-11.64-5.6-17.89-5.6-6,0-9.91,4.09-12.93,12.5,0,0-8.41,23.72-9.49,27.16A6.43,6.43,0,0,0,42.53,44c0,9.22,36.3,39.45,84.94,39.45M160,72.07c1.73,8.19,1.73,9.05,1.73,10.13,0,14-15.74,21.77-36.43,21.77C78.54,104,37.58,76.6,37.58,58.49a18.45,18.45,0,0,1,1.51-7.33C22.27,52,.5,55,.5,74.22c0,31.48,74.59,70.28,133.65,70.28,45.28,0,56.7-20.48,56.7-36.65,0-12.72-11-27.16-30.83-35.78"/></svg>
+          </xmpRights:UsageTerms>
+        </rdf:Description>
+      </rdf:RDF>
+    </x:xmpmeta>
+<?xpacket end="w"?>  </metadata>
+  <path
+     d="m 158.1,86.11 a 14,14 0 0 1 0.31,3.42 C 158.41,104.41 140.3,107 127.8,107 79.15,107 42.86,76.76 42.86,67.54 a 6.12,6.12 0 0 1 0.22,-1.94 l -3.67,9.06 A 18.45,18.45 0 0 0 37.9,82 c 0,18.11 41,45.48 87.74,45.48 20.7,0 36.43,-7.76 36.43,-21.77 0,-1.08 0,-1.94 -1.72,-10.13 z"
+     id="path1" />
+  <path
+     class="cls-1"
+     d="m 127.8,107 c 12.5,0 30.61,-2.58 30.61,-17.46 A 14,14 0 0 0 158.1,86.12 L 150.65,53.76 C 148.92,46.64 147.42,43.41 134.91,37.16 125.21,32.19 104.08,24 97.83,24 92,24 90.29,31.54 83.39,31.54 c -6.68,0 -11.64,-5.6 -17.89,-5.6 -6,0 -9.92,4.09 -12.94,12.5 0,0 -8.4,23.72 -9.48,27.16 a 6.12,6.12 0 0 0 -0.22,1.94 c 0,9.22 36.29,39.46 84.94,39.46 m 32.55,-11.42 c 1.72,8.19 1.72,9.05 1.72,10.13 0,14 -15.73,21.77 -36.43,21.77 C 78.86,127.47 37.9,100.1 37.9,82 a 18.45,18.45 0 0 1 1.51,-7.33 C 22.6,75.52 0.83,78.54 0.83,97.72 0.83,129.2 75.41,168 134.48,168 c 45.27,0 56.69,-20.48 56.69,-36.65 0,-12.72 -11,-27.16 -30.82,-35.78"
+     id="path2" />
+</svg>

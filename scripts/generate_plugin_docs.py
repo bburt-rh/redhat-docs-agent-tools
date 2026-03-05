@@ -268,8 +268,10 @@ def main():
         page_path.write_text(generate_plugin_detail_page(p))
         print(f"Generated docs/plugins/{p['name']}.md")
 
-    (DOCS_DIR / "installation.md").write_text(generate_installation_page(plugins))
-    print("Generated docs/installation.md")
+    installing_dir = DOCS_DIR / "installing"
+    installing_dir.mkdir(exist_ok=True)
+    (installing_dir / "index.md").write_text(generate_installation_page(plugins))
+    print("Generated docs/installing/index.md")
 
 
 if __name__ == "__main__":
