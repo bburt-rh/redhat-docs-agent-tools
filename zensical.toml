@@ -1,9 +1,10 @@
 [project]
 site_name = "Red Hat Docs Agent Tools"
-site_description = "Claude Code plugins, skills, and agent tools for Red Hat documentation workflows"
+site_description = "Claude Code plugins, skills, agents, and commands for Red Hat documentation workflows"
 site_url = "https://aireilly.github.io/redhat-docs-agent-tools/"
 repo_url = "https://github.com/aireilly/redhat-docs-agent-tools"
 edit_uri = "edit/main/docs/"
+extra_css = ["stylesheets/extra.css"]
 nav = [
     {"Home" = [
         {"Overview" = "index.md"},
@@ -11,6 +12,7 @@ nav = [
     ]},
     {"Plugins" = [
         {"Browse plugins" = "plugins.md"},
+        {"hello-world" = "plugins/hello-world.md"},
     ]},
     {"Installing" = [
         {"Installation" = "installing/index.md"},
@@ -31,7 +33,13 @@ features = [
     "navigation.expand",
     "content.action.edit",
     "content.action.view",
+    "content.code.copy",
+    "content.code.annotate",
+    "navigation.footer"
 ]
+
+[project.extra.status]
+new = "Recently added"
 
 [[project.theme.palette]]
 media = "(prefers-color-scheme: light)"
@@ -45,9 +53,6 @@ scheme = "slate"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
-[project.markdown_extensions.attr_list]
-[project.markdown_extensions.md_in_html]
-
 [project.markdown_extensions.pymdownx.emoji]
 emoji_index = "zensical.extensions.emoji.twemoji"
 emoji_generator = "zensical.extensions.emoji.to_svg"
@@ -56,6 +61,11 @@ emoji_generator = "zensical.extensions.emoji.to_svg"
 anchor_linenums = true
 line_spans = "__span"
 pygments_lang_class = true
+
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.md_in_html]
 [project.markdown_extensions.pymdownx.inlinehilite]
 [project.markdown_extensions.pymdownx.snippets]
 [project.markdown_extensions.pymdownx.superfences]
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.pymdownx.details]

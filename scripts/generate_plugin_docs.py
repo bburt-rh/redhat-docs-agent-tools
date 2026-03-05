@@ -118,15 +118,18 @@ def generate_plugin_detail_page(plugin: dict) -> str:
     """Generate a per-plugin detail page at docs/plugins/<name>.md."""
     p = plugin
     lines = [
-        f"# {p['name']}",
+        "---",
+        f"subtitle: v{p['version']}",
+        "---",
         "",
-        f"> **Version:** {p['version']}",
+        f"# {p['name']}",
+        f"**v{p['version']}**{{ .subtitle }}",
         "",
         p["description"],
         "",
         "## Installation",
         "",
-        "```",
+        "```bash",
         f"/plugin install {p['name']}@redhat-docs-agent-tools",
         "```",
         "",
@@ -137,7 +140,9 @@ def generate_plugin_detail_page(plugin: dict) -> str:
         lines.append("")
         for cmd in p["commands"]:
             hint = f" {cmd['argument_hint']}" if cmd["argument_hint"] else ""
-            lines.append(f"### `/{p['name']}:{cmd['name']}{hint}`")
+            lines.append("```bash")
+            lines.append(f"/{p['name']}:{cmd['name']}{hint}")
+            lines.append("```")
             lines.append("")
             lines.append(cmd["description"])
             lines.append("")
@@ -146,7 +151,7 @@ def generate_plugin_detail_page(plugin: dict) -> str:
         lines.append("## Skills")
         lines.append("")
         for skill in p["skills"]:
-            lines.append(f"### `{skill['name']}`")
+            lines.append(f"### {skill['name']}")
             lines.append("")
             lines.append(skill["description"])
             lines.append("")
@@ -154,7 +159,7 @@ def generate_plugin_detail_page(plugin: dict) -> str:
     lines.extend([
         "## Update",
         "",
-        "```",
+        "```bash",
         "/plugin marketplace update redhat-docs-agent-tools",
         "```",
     ])
@@ -218,13 +223,13 @@ def generate_installation_page(plugins: list[dict]) -> str:
         "",
         "Add the plugin marketplace to your Claude Code configuration:",
         "",
-        "```",
+        "```bash",
         "/plugin marketplace add aireilly/redhat-docs-agent-tools",
         "```",
         "",
         "Then install any plugin:",
         "",
-        "```",
+        "```bash",
         "/plugin install <plugin-name>@redhat-docs-agent-tools",
         "```",
         "",
@@ -240,7 +245,7 @@ def generate_installation_page(plugins: list[dict]) -> str:
     lines.append("")
     lines.append("## Update plugins")
     lines.append("")
-    lines.append("```")
+    lines.append("```bash")
     lines.append("/plugin marketplace update redhat-docs-agent-tools")
     lines.append("```")
 
@@ -274,6 +279,41 @@ def main():
     installing_dir.mkdir(exist_ok=True)
     (installing_dir / "index.md").write_text(generate_installation_page(plugins))
     print("Generated docs/installing/index.md")
+
+    # Update zensical.toml with version status entries and nav
+    update_zensical_config(plugins)
+
+
+def update_zensical_config(plugins: list[dict]) -> None:
+    """Update zensical.toml with version status entries and plugin nav entries."""
+    config_path = REPO_ROOT / "zensical.toml"
+    if not config_path.is_file():
+        return
+
+    content = config_path.read_text()
+    content = _update_nav_plugins(content, plugins)
+    config_path.write_text(content)
+
+
+
+def _update_nav_plugins(content: str, plugins: list[dict]) -> str:
+    """Update the Plugins nav section to include plugin detail pages."""
+    # Match the Plugins nav block and replace it with updated entries
+    # Pattern: {"Plugins" = [\n        ...\n    ]}
+    pattern = r'(\{"Plugins" = \[)\s*\n(.*?)\n(\s*\]\})'
+    match = re.search(pattern, content, re.DOTALL)
+    if not match:
+        return content
+
+    indent = "        "
+    nav_lines = [f'{indent}{{"Browse plugins" = "plugins.md"}},']
+    for p in plugins:
+        nav_lines.append(f'{indent}{{"{p["name"]}" = "plugins/{p["name"]}.md"}},')
+
+    replacement = f'{match.group(1)}\n' + "\n".join(nav_lines) + f'\n{match.group(3)}'
+    result = content[:match.start()] + replacement + content[match.end():]
+    print(f"Updated zensical.toml nav with {len(plugins)} plugin page(s)")
+    return result
 
 
 if __name__ == "__main__":
