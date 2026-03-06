@@ -2,5 +2,7 @@
   "name": "hello-world",
   "version": "1.0.0",
   "description": "A hello world reference plugin for Claude Code agent tools",
-  "author": "github.com/aireilly"
+  "author": {
+    "name": "github.com/aireilly"
+  }
 }
