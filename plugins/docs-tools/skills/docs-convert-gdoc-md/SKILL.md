@@ -15,9 +15,10 @@ Export Google content using the `gcloud` CLI for authentication:
 
 ## Prerequisites
 
-- `gcloud` CLI must be installed
-- User must be authenticated via `gcloud auth login --enable-gdrive-access`
-- `python-pptx` must be installed for Slides export (`pip install python-pptx`)
+- The [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/) is configured
+- `gcloud` CLI is installed
+- User is authenticated via `gcloud auth login --enable-gdrive-access`
+- `python-pptx` is installed for Slides export (`pip install python-pptx`)
 
 ## Instructions
 
