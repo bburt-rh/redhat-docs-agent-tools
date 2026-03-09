@@ -39,11 +39,10 @@ BasedOnStyles = RedHat
 
 Do NOT create the file automatically, ask the user if they want to create it first.
 
-If a temporary config is needed, create it in `.work/` (gitignored) and clean it up after linting:
+If a temporary config is needed, create it in `/tmp/` and clean it up after linting:
 
 ```bash
-mkdir -p .work
-cat <<'EOF' > .work/vale-temp.ini
+cat <<'EOF' > /tmp/vale-temp.ini
 StylesPath = .vale/styles
 MinAlertLevel = suggestion
 Packages = RedHat
@@ -56,7 +55,7 @@ BasedOnStyles = RedHat
 EOF
 ```
 
-Use `--config=.work/vale-temp.ini` when running Vale, and remove the temp config and `.work/.vale/` directory when done.
+Use `--config=/tmp/vale-temp.ini` when running Vale, and remove the temp config when done.
 
 ### Sync styles
 
