@@ -97,36 +97,17 @@ Follow this exact workflow when invoked:
 
 ### Step 1: Parse Arguments
 
-```bash
-# Arguments:
-# --docs SOURCE       - Documentation to validate (required, repeatable)
-# --code URL          - Code repository URL (repeatable)
-# --ref BRANCH        - Git ref for previous --code (default: main)
-# --jira TICKET-123   - JIRA ticket for auto-discovery
-# --pr URL            - PR/MR URL for auto-discovery (repeatable)
-# --gdoc URL          - Google Doc URL for auto-discovery
-# --fix               - Enable auto-fixing (>=65% confidence)
-# --auto              - Run both phases without pausing
-# --dry-run           - Show what would be fixed without applying changes
+The calling command (or user) provides these arguments. Extract them from the invocation context:
 
-REPOS=()
-DOCS_SOURCES=()
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --docs) DOCS_SOURCES+=("$2"); shift 2 ;;
-    --code) REPOS+=("$2"); shift 2 ;;
-    --ref) REF="$2"; shift 2 ;;
-    --jira) JIRA_TICKET="$2"; shift 2 ;;
-    --pr) PR_URLS+=("$2"); shift 2 ;;
-    --gdoc) GDOC_URL="$2"; shift 2 ;;
-    --fix) FIX=true; shift ;;
-    --auto) AUTO=true; shift ;;
-    --dry-run) DRY_RUN=true; shift ;;
-    *) shift ;;
-  esac
-done
-```
+- `--docs SOURCE` (required, repeatable) — documentation to validate
+- `--code URL` (repeatable) — code repository URL
+- `--ref BRANCH` (default: main) — git ref for previous `--code`
+- `--jira TICKET-123` — JIRA ticket for auto-discovery
+- `--pr URL` (repeatable) — PR/MR URL for auto-discovery
+- `--gdoc URL` — Google Doc URL for auto-discovery
+- `--fix` — enable auto-fixing (>=65% confidence)
+- `--auto` — run both phases without pausing
+- `--dry-run` — show what would be fixed without applying changes
 
 ### Step 1b: Resolve Docs Sources
 
@@ -138,53 +119,24 @@ Each `--docs` source is auto-detected and resolved:
 | Local directory | Path exists as directory | Glob for `*.adoc` and `*.md` files |
 | Glob pattern | Contains `*` or `?` | Expand pattern to matching files |
 | PR/MR URL | Matches GitHub/GitLab PR URL pattern | Fetch changed doc files via `git_review_api.py` |
-| Google Doc URL | Matches `docs.google.com` | Read via `docs-read-gdoc` skill, save to temp file |
+| Google Doc URL | Matches `docs.google.com` | Read via `docs-convert-gdoc-md` skill, save to temp file |
 | Remote repo URL | Matches `https://github.com` or `https://gitlab.com` (non-PR) | Clone and glob for doc files |
 
 Collect all resolved files into `DOCS_FILES` array for validation.
 
-**Discovery priority** (first to last):
-1. Explicit `--code` (highest priority - user knows what they want)
-2. PR URLs (most specific - actual code being documented)
-3. JIRA ticket (may have multiple PRs, use most recent)
-4. Google Docs (may have outdated links)
-5. AsciiDoc attributes (may be stale)
-
 ### Step 2: Validate Input
 
-```bash
-if [[ ${#DOCS_SOURCES[@]} -eq 0 ]]; then
-  echo "ERROR: At least one --docs source is required"
-  exit 1
-fi
-
-if [[ ${#REPOS[@]} -eq 0 ]]; then
-  echo "ERROR: No code repositories specified or discovered"
-  echo "Use --code, --jira, --pr, --gdoc, or add :code-repo-url: attribute to docs"
-  exit 1
-fi
-```
+Verify at least one `--docs` source was provided and at least one code repository was specified or discovered. If either is missing, stop with a clear error message listing the available options.
 
 ### Step 3: Clone Code Repositories
 
-```bash
-CLONE_DIR="/tmp/tech-review"
-mkdir -p "$CLONE_DIR"
+Clone each repo to `/tmp/tech-review/<repo-name>/` using `git clone --depth 1`. Try the specified `--ref` first, fall back to default branch. Skip repos that are already cloned. Warn and continue if a clone fails.
 
-for repo_url in "${REPOS[@]}"; do
-  repo_name=$(basename "$repo_url" .git)
-  clone_path="$CLONE_DIR/$repo_name"
+### Parallelization
 
-  [[ -d "$clone_path" ]] && continue
+When multiple code repositories are involved, parallelize the extract+search pipeline across repos using subagents. Each repo's pipeline (Steps 4-5) is independent and can run concurrently. Merge results before proceeding to Step 6 (whole-repo scan).
 
-  echo "Cloning $repo_url..."
-  if ! git clone --depth 1 --branch "${REF:-main}" "$repo_url" "$clone_path" 2>/dev/null; then
-    git clone --depth 1 "$repo_url" "$clone_path" 2>/dev/null || {
-      echo "WARNING: Failed to clone $repo_url - skipping"; continue
-    }
-  fi
-done
-```
+For single-repo reviews, run sequentially — the overhead of subagent spawning isn't worth it.
 
 ### Step 4: Extract Technical References
 
@@ -236,35 +188,17 @@ The search results are raw evidence — use your judgment to interpret them and 
 
 Cross-reference multiple signals (search results + git history + related files) before finalizing confidence.
 
+**Assigning severity**: `High` = users will hit errors (broken commands, missing APIs). `Medium` = misleading but not blocking (wrong names, stale options). `Low` = cosmetic or informational (undocumented features, formatting).
+
 ### Step 6: Perform Whole-Repo Scanning
 
 For each flagged issue (removed command, changed API, etc.), search all `.adoc` and `.md` files for additional occurrences of the same pattern. Record every file and line where the pattern appears so the report captures the full blast radius.
 
-### Step 7: Calculate Confidence Scores
-
-| Scenario | Confidence | Action |
-|----------|------------|--------|
-| Whitespace/formatting only | 100% | Auto-fix |
-| Exact match with syntax change | 95% | Auto-fix |
-| Flag renamed (git log evidence) | 90% | Auto-fix |
-| Function signature changed (exact function) | 85% | Auto-fix |
-| Import updated (package renamed) | 80% | Auto-fix |
-| Config key renamed (migration doc) | 75% | Auto-fix |
-| Path changed (file moved) | 65% | Auto-fix |
-| Command replaced (similar found) | 60% | Manual review |
-| Endpoint path changed | 55% | Manual review |
-| Config structure changed | 50% | Manual review |
-| Component removed (no replacement) | 45% | Manual review |
-| Semantic changes | 40% | Manual review |
-| No match found | 35% | Manual review |
-
-**Threshold**: >=65% = Auto-fix, <65% = Manual review
-
-### Step 8: Apply Auto-Fixes (if --fix enabled)
+### Step 7: Apply Auto-Fixes (if --fix enabled)
 
 For each issue with confidence >=65%, apply the fix using the Edit tool. Track each fix applied and its before/after text for the report.
 
-### Step 9: Generate Markdown Report
+### Step 8: Generate Markdown Report
 
 Generate comprehensive markdown report at `.claude_docs/technical-review-report.md` with these sections:
 
@@ -277,7 +211,7 @@ Generate comprehensive markdown report at `.claude_docs/technical-review-report.
 7. **Next Steps** - review auto-fixes, run Phase 2, address whole-repo findings, run Vale, test examples
 8. **Agentic Follow-Up Command** - example `/docs-technical-review-apply` invocations
 
-### Step 9b: Generate JSON Sidecar Report
+### Step 8b: Generate JSON Sidecar Report
 
 Write `.claude_docs/technical-review-report.json` alongside the markdown report. This structured output enables programmatic consumption by Phase 2 and CI/CD pipelines.
 
@@ -294,7 +228,9 @@ Write `.claude_docs/technical-review-report.json` alongside the markdown report.
     "old_text": "--enable-feature",
     "new_text": "--feature-enable",
     "evidence": "Flag renamed in commit abc123",
-    "description": "Command flag renamed in v2.0"
+    "description": "Command flag renamed in v2.0",
+    "severity": "Medium",
+    "reasoning": "Git log shows flag renamed in v2.0 release"
   },
   {
     "id": "MR-1",
@@ -305,7 +241,9 @@ Write `.claude_docs/technical-review-report.json` alongside the markdown report.
     "old_text": "getUserProfile(id)",
     "new_text": "getProfile(userId)",
     "evidence": "Function signature changed, similar function found",
-    "description": "API function signature may have changed"
+    "description": "API function signature may have changed",
+    "severity": "High",
+    "reasoning": "Similar function getProfile exists but takes userId instead of id — may be a rename or a different function"
   }
 ]
 ```
@@ -323,30 +261,14 @@ Write `.claude_docs/technical-review-report.json` alongside the markdown report.
 | `new_text` | string | Suggested or applied replacement text |
 | `evidence` | string | What was found in the code repository |
 | `description` | string | Human-readable description of the issue |
+| `severity` | string | Issue severity: `High`, `Medium`, or `Low` |
+| `reasoning` | string | Explanation of why the change is suggested and confidence rationale |
 
 The `old_text` field is critical for Phase 2: it enables content-based matching to locate issues even if line numbers have shifted due to earlier edits.
 
-### Step 10: Output Summary
+### Step 9: Output Summary
 
-```bash
-echo "Technical review complete!"
-echo "  Total issues: $TOTAL_ISSUES"
-echo "  Auto-fixed: $AUTO_FIXED (>=65% confidence)"
-echo "  Manual review: $MANUAL_REVIEW (<65% confidence)"
-echo "  Report: .claude_docs/technical-review-report.md"
-echo "  JSON:   .claude_docs/technical-review-report.json"
-```
-
-## Validation Categories Summary
-
-| Category | What to Check | Auto-Fix Examples | Manual Review Examples |
-|----------|---------------|-------------------|------------------------|
-| **Commands** | Existence, flags, syntax | Flag renamed, syntax updated | Command removed |
-| **Code Blocks** | Match source, syntax correct | Import updated, formatting | Semantic changes |
-| **APIs/Functions** | Exist, signatures match | Signature updated | Component removed |
-| **Configuration** | Keys exist, types valid | Key renamed | Structure changed |
-| **File Paths** | Files exist | Path updated | File deleted |
-| **Conceptual** | Descriptions match behavior | Terminology updated | Architecture changes |
+Display a summary showing total issues found, auto-fixed count, manual review count, and the paths to both report files.
 
 ## Error Handling
 
@@ -363,56 +285,4 @@ This skill can be called by:
 - `docs-workflow` command (as optional Stage 5)
 - CI/CD pipelines for automated validation
 
-## Output Files
-
-| File | Description |
-|------|-------------|
-| `.claude_docs/technical-review-report.md` | Comprehensive validation report (Markdown) |
-| `.claude_docs/technical-review-report.json` | Structured issue data for Phase 2 and CI/CD (JSON) |
-| `/tmp/tech-review-refs.json` | Extracted technical references |
-| `/tmp/tech-review-search.json` | Search results from code repositories |
-| `/tmp/tech-review/<repo-name>/` | Cloned code repositories |
-
-## Example Invocations
-
-```bash
-# Explicit code repo
-/docs-technical-review-validate --docs modules/ --code https://github.com/org/repo --fix
-
-# JIRA auto-discovery
-/docs-technical-review-validate --docs .claude_docs/drafts/rhaistrat-123/ --jira RHAISTRAT-123 --fix
-
-# Multiple docs sources and combined discovery
-/docs-technical-review-validate \
-  --docs modules/proc-install.adoc --docs modules/ref-api.adoc \
-  --jira RHAISTRAT-123 --code https://github.com/org/extra-repo --fix
-
-# PR as docs source (validate changed files from PR against code repo)
-/docs-technical-review-validate \
-  --docs https://github.com/org/docs-repo/pull/100 \
-  --code https://github.com/org/code-repo --fix
-
-# Google Doc discovery with dry-run
-/docs-technical-review-validate --docs modules/ \
-  --gdoc https://docs.google.com/document/d/ABC123 --dry-run
-```
-
-## Best Practices
-
-1. **Always run Phase 1 first** (`--fix`) to handle high-confidence issues
-2. **Review the report** before running Phase 2 (agentic apply)
-3. **Test critical examples** manually after auto-fixes
-4. **Run Vale** after technical review to catch style issues
-5. **Commit auto-fixes separately** from manual fixes
-6. **Re-run after major code changes** to catch drift
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| No repos discovered | Add `--code` or `:code-repo-url:` attribute |
-| Clone failures | Check network, auth tokens, repo URL |
-| Too many false positives | Increase confidence threshold in code |
-| Missing valid issues | Decrease confidence threshold |
-| Slow performance | Reduce scope (target specific files with `--docs`) |
 

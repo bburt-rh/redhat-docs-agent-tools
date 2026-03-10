@@ -142,7 +142,7 @@ Display these to the user.
 
 ### Step 5: Decide Whether to Continue to Phase 2
 
-**Phase 1 only mode** (`--phase1-only`): Stop and show how to run Phase 2 later with `/docs-technical-review-apply`.
+**Phase 1 only mode** (`--phase1-only`): Stop and show how to run Phase 2 later with the `docs-technical-review-apply` skill.
 
 **No manual review items**: Stop with success message.
 
@@ -156,11 +156,11 @@ Display these to the user.
 
 ### Step 6: Run Phase 2 (Interactive Apply)
 
-If user chose to continue, build Phase 2 arguments from the report file path plus any `--confidence` or `--items` values.
+If user chose to continue, pass the report file path from Phase 1 to Phase 2, plus any filtering options from the user's choice in Step 5.
 
 Invoke Phase 2 using the Skill tool:
 - skill: `docs-technical-review-apply`
-- args: report file path plus filtering options
+- args: `.claude_docs/technical-review-report.md` plus `--confidence` or `--items` if specified
 
 ### Step 7: Display Final Summary
 
@@ -169,31 +169,6 @@ Display completion message with next steps:
 2. Run Vale to check for style issues
 3. Test updated code examples and commands
 4. Commit changes to version control
-
-## Workflow Steps Summary
-
-### Phase 1: Validation & Auto-Fix
-1. **Discover code repositories** from JIRA, PRs, Google Docs, or explicit URLs
-2. **Clone repositories** to `/tmp/tech-review/`
-3. **Extract technical references** (commands, code blocks, APIs, configs, file paths)
-4. **Validate against code** using fuzzy matching and git history
-5. **Auto-fix high-confidence issues** (>=65%)
-6. **Perform whole-repo scan** for related issues across all .adoc files
-7. **Generate detailed report** at `.claude_docs/technical-review-report.md`
-
-### Pause Point
-- **Interactive mode**: User reviews Phase 1 report and decides whether to continue
-- **Auto mode**: Proceeds directly to Phase 2
-- **Phase 1 only**: Stops here
-
-### Phase 2: Interactive Agentic Review
-1. **Read report** from Phase 1
-2. **Filter items** by confidence range or specific IDs (if specified)
-3. **Present each issue** with evidence, confidence score, and suggested fix
-4. **Get user approval** for each fix
-5. **Apply approved changes** to documentation files
-
-See the `docs-technical-review-validate` skill for validation categories and confidence scoring details.
 
 ## Output Files
 
@@ -222,13 +197,13 @@ See the `docs-technical-review-validate` skill for validation categories and con
 ## Notes
 
 - Individual skills can still be called independently for advanced use cases
-- Phase 2 can be run later using `/docs-technical-review-apply`
+- Phase 2 can be run later using the `docs-technical-review-apply` skill
 - Auto mode (`--auto`) skips all pause points
 - The workflow preserves all Phase 1 auto-fixes even if Phase 2 is cancelled
 
-## Related Commands
+## Related Skills
 
-| Command | Purpose |
-|---------|---------|
-| `/docs-technical-review-validate` | Run Phase 1 only (validation and auto-fix) |
-| `/docs-technical-review-apply` | Run Phase 2 only (interactive review) |
+| Skill | Purpose |
+|-------|---------|
+| `docs-technical-review-validate` | Phase 1: validation and auto-fix |
+| `docs-technical-review-apply` | Phase 2: interactive review and apply |

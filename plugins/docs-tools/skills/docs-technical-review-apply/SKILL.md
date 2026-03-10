@@ -63,141 +63,18 @@ For each item to review, the skill:
 6. **Track results** - Record what was applied, skipped, or modified
 7. **Update report** - Mark applied items in the report
 
-## Example Interactive Session
-
-```
-─────────────────────────────────────────
-Item MR-1 (1 of 9): Command Removed from Codebase
-─────────────────────────────────────────
-Confidence: 45% (Low)
-Severity: High
-
-Location: modules/proc-delete-user.adoc
-
-Current documentation:
-┌────────────────────────────────────────┐
-│ .Procedure                             │
-│ 1. Delete the user:                    │
-│    $ user-tool delete <username>       │
-│ 2. Verify deletion:                    │
-│    $ user-tool list                    │
-└────────────────────────────────────────┘
-
-Code evidence:
-- Command `user-tool` not found in any repository
-- Found DELETE /api/users/{id} endpoint in oauth-server/api/handlers.go:156
-- Found example: curl -X DELETE in oauth-server/examples/api.sh:23
-
-Suggested fix:
-┌────────────────────────────────────────┐
-│ .Procedure                             │
-│ 1. Delete the user:                    │
-│    $ curl -X DELETE \                  │
-│      https://api.example.com/users/123 │
-│ 2. Verify deletion:                    │
-│    $ curl https://api.example.com/users│
-└────────────────────────────────────────┘
-
-Reasoning: user-tool CLI removed, replaced with direct API calls
-
-What would you like to do?
-```
-
-Then presents options via `AskUserQuestion`:
-1. Apply suggested fix
-2. Modify fix (I'll ask for your changes)
-3. Skip (leave for manual editing)
-4. Delete section entirely
-
-### If user chooses "Apply suggested fix"
-
-```
-Applied fix to modules/proc-delete-user.adoc
-
-Proceeding to next item...
-```
-
-### If user chooses "Modify fix"
-
-```
-Please describe the changes you'd like to make to the suggested fix:
-
-[User provides modification, e.g., "Use the user ID variable instead of hardcoded 123"]
-
-Modified fix applied to modules/proc-delete-user.adoc
-
-Proceeding to next item...
-```
-
-### If user chooses "Skip"
-
-```
-Skipped MR-1
-
-Proceeding to next item...
-```
-
 ## Implementation Workflow
 
 ### Step 1: Parse Arguments
 
-```bash
-REPORT_FILE=$1
-
-# Parse options
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --confidence)
-      IFS='-' read -r MIN_CONF MAX_CONF <<< "$2"
-      shift 2
-      ;;
-    --items)
-      IFS=',' read -ra ITEM_IDS <<< "$2"
-      shift 2
-      ;;
-    --dry-run)
-      DRY_RUN=true
-      shift
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
-```
+Extract the report file path (first positional argument) and optional filters:
+- `--confidence MIN-MAX` — only process items in this confidence range
+- `--items ID,ID,...` — only process these specific item IDs
+- `--dry-run` — preview items without applying changes
 
 ### Step 2: Load Items from JSON Sidecar
 
-Read the structured JSON sidecar generated alongside the markdown report. This provides reliable `old_text` and `new_text` fields for content-based matching, eliminating line number drift issues.
-
-```bash
-JSON_SIDECAR="${REPORT_FILE%.md}.json"
-
-if [[ -f "$JSON_SIDECAR" ]]; then
-  # Primary: read from JSON sidecar
-  # Filter for items below auto-fix threshold
-  ITEMS=$(jq '.[] | select(.confidence < 65)' "$JSON_SIDECAR")
-
-  # Apply confidence range filter if specified
-  if [[ -n "$MIN_CONF" ]] && [[ -n "$MAX_CONF" ]]; then
-    ITEMS=$(echo "$ITEMS" | jq "select(.confidence >= $MIN_CONF and .confidence <= $MAX_CONF)")
-  fi
-
-  # Apply item ID filter if specified
-  if [[ ${#ITEM_IDS[@]} -gt 0 ]]; then
-    ID_FILTER=$(printf '"%s",' "${ITEM_IDS[@]}" | sed 's/,$//')
-    ITEMS=$(echo "$ITEMS" | jq "select(.id as \$id | [$ID_FILTER] | index(\$id))")
-  fi
-else
-  # Fallback: parse markdown report
-  # Look for "## Issues Requiring Manual/Agentic Review" section
-  # Extract items starting with "### MR-N:" headers
-  # Parse confidence, file, evidence, suggested fix from markdown structure
-  # Note: content-based matching may be less reliable without old_text/new_text fields
-  echo "WARNING: JSON sidecar not found at $JSON_SIDECAR"
-  echo "Falling back to markdown parsing (content matching may be less precise)"
-fi
-```
+Read the JSON sidecar (same path as the report but with `.json` extension). Filter for items with confidence <65%, then apply any `--confidence` range or `--items` ID filters. If the JSON sidecar is missing, fall back to parsing the markdown report (warn the user that content matching may be less precise).
 
 Each JSON item provides these fields:
 
@@ -205,12 +82,14 @@ Each JSON item provides these fields:
 |-------|-------------|
 | `id` | Item identifier (e.g., `MR-1`) |
 | `file` | Path to the documentation file |
+| `line` | Line number in the file (approximate — use `old_text` for matching) |
+| `category` | One of: `commands`, `code_blocks`, `apis`, `configs`, `file_paths`, `conceptual` |
 | `old_text` | Exact current text in the file to match against |
 | `new_text` | Suggested replacement text |
 | `confidence` | Confidence score (0-100) |
-| `evidence` | Array of code evidence strings |
+| `evidence` | Code evidence string |
 | `description` | Human-readable issue description |
-| `severity` | Issue severity (High, Medium, Low) |
+| `severity` | Issue severity (`High`, `Medium`, `Low`) |
 | `reasoning` | Explanation of why the change is suggested |
 
 ### Step 3: Process Each Item Interactively
@@ -218,7 +97,19 @@ Each JSON item provides these fields:
 For each item, present the issue with context and get user approval:
 
 1. **Read current file** to verify `old_text` exists in the file
-2. **Display**: confidence, severity, current text, code evidence, suggested fix, reasoning
+2. **Present** the item in this format:
+
+```
+MR-1 (1 of 5): Command flag renamed | Confidence: 60% | Severity: High
+File: modules/proc-install.adoc
+
+Current:  $ my-tool --enable-feature
+Suggested: $ my-tool --feature-enable
+
+Evidence: Flag renamed in commit abc123, git log confirms deprecation
+Reasoning: Exact command exists, only the flag changed — likely a rename
+```
+
 3. **Ask user** via `AskUserQuestion` for their decision
 4. **Apply fix** using content-based matching:
 
@@ -231,33 +122,7 @@ This approach uses exact text matching rather than line numbers, so edits to ear
 
 ### Step 4: Display Summary and Update Report
 
-```bash
-echo "═════════════════════════════════════════"
-echo "Technical Review Apply Summary"
-echo "═════════════════════════════════════════"
-echo ""
-echo "Results:"
-echo "  Applied: $APPLIED"
-echo "  Modified: $MODIFIED"
-echo "  Skipped: $SKIPPED"
-echo "  Deleted: $DELETED"
-
-if [[ $APPLIED -gt 0 ]] || [[ $MODIFIED -gt 0 ]] || [[ $DELETED -gt 0 ]]; then
-  echo ""
-  echo "Next steps:"
-  echo "  1. Review the changes"
-  echo "  2. Run: /vale <changed-files>"
-  echo "  3. Test any updated examples"
-  echo "  4. Commit the changes"
-
-  # Mark applied items in the report file
-  REPORT_BACKUP="${REPORT_FILE}.bak"
-  cp "$REPORT_FILE" "$REPORT_BACKUP"
-  for item_id in "${APPLIED_IDS[@]}"; do
-    sed -i "s/^### $item_id:/### $item_id: APPLIED -/" "$REPORT_FILE"
-  done
-fi
-```
+Display counts of applied, modified, skipped, and deleted items. If any changes were made, back up the report file and mark applied items in the markdown report by prefixing their headers with "APPLIED".
 
 ## User Interaction
 
@@ -280,45 +145,6 @@ If the user chooses "Modify fix", ask them to describe the changes they want, ap
 | File not found for fix | Skip item, report error, continue |
 | `old_text` not found in file | Warn user, show current file content, ask how to proceed |
 | Edit operation fails | Report error, ask to retry or skip |
-
-## Example Invocations
-
-```bash
-# Apply all medium-confidence fixes (50-64%)
-/docs-technical-review-apply .claude_docs/technical-review-report.md --confidence 50-64
-
-# Apply specific critical items
-/docs-technical-review-apply .claude_docs/technical-review-report.md --items MR-1,MR-2,MR-5
-
-# Apply all manual review items
-/docs-technical-review-apply .claude_docs/technical-review-report.md
-
-# Dry run to preview items
-/docs-technical-review-apply .claude_docs/technical-review-report.md --confidence 50-64 --dry-run
-```
-
-## Best Practices
-
-1. **Start with higher confidence items** (60-64%) - easier decisions
-2. **Review code evidence carefully** before applying fixes
-3. **Test examples after applying** to verify they work
-4. **Commit in small batches** - easier to review and revert
-5. **Run Vale after applying** to catch style issues
-6. **Keep skipped items list** for follow-up manual editing
-
-## Output Files
-
-| File | Description |
-|------|-------------|
-| `<report-file>.bak` | Backup of original report before updates |
-| Modified .adoc files | Documentation files with applied fixes |
-
-## Limitations
-
-- Requires well-formed technical review report (JSON sidecar preferred)
-- Cannot handle fixes that span multiple files (applies per-file)
-- User must have file write permissions
-- Complex structural changes may need manual editing
 
 ## Integration
 
