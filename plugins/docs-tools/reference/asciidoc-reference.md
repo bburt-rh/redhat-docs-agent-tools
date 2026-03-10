@@ -445,6 +445,212 @@ include::snippets/snip-beta-note.adoc[]
 
 ---
 
+## Writing conventions
+
+### Short descriptions (abstracts)
+
+Every module must have a short description using the `[role="_abstract"]` tag:
+
+```asciidoc
+[role="_abstract"]
+You can configure automatic scaling to adjust resources based on workload demands.
+Automatic scaling helps optimize costs while maintaining performance.
+This feature is available in version 4.10 and later.
+```
+
+### Code blocks
+
+Always specify the source language:
+
+```asciidoc
+[source,terminal]
+----
+$ user command with dollar sign prompt
+----
+
+[source,terminal]
+----
+# root command with hash prompt
+----
+
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+----
+
+[source,json]
+----
+{
+  "key": "value"
+}
+----
+```
+
+**Do NOT use callouts** — AsciiDoc callouts are not supported in DITA and should not be used in new content. Instead, use one of these approaches to explain commands, options, or user-replaced values:
+
+**Option 1: Simple sentence** (for single values):
+```asciidoc
+In the following command, replace `<project_name>` with the name of your project:
+
+[source,terminal]
+----
+$ oc new-project <project_name>
+----
+```
+
+**Option 2: Definition list** (for multiple options/parameters):
+```asciidoc
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: <my_pod>
+----
++
+--
+Where:
+
+`apiVersion`:: Specifies the API version.
+`kind`:: Specifies the resource type.
+`<my_pod>`:: Specifies the name of the pod.
+--
+```
+
+**Option 3: Bulleted list** (for explaining YAML structure):
+```asciidoc
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example
+----
+
+* `apiVersion` specifies the API version.
+* `kind` specifies the resource type.
+* `metadata.name` specifies the name of the pod.
+```
+
+See the Red Hat supplementary style guide: https://redhat-documentation.github.io/supplementary-style-guide/#explain-commands-variables-in-code-blocks
+
+### User-replaced values
+
+Mark values users must replace:
+
+```asciidoc
+Replace `<username>` with your actual username:
+
+[source,terminal]
+----
+$ ssh <username>@server.example.com
+----
+```
+
+### Admonitions
+
+Use sparingly and appropriately:
+
+```asciidoc
+[NOTE]
+====
+Additional helpful information.
+====
+
+[IMPORTANT]
+====
+Information users must not overlook.
+====
+
+[WARNING]
+====
+Information about potential data loss or security issues.
+====
+```
+
+### Product attributes
+
+Always use attributes from `_attributes/attributes.adoc`. Read the attributes file first to understand available attributes.
+
+```asciidoc
+{product-name} version {product-version} provides...
+```
+
+---
+
+## Additional template rules
+
+### Assembly IDs
+
+Do not use `_{context}` suffix in the Anchor ID for ASSEMBLY files. Use a simple descriptive ID: `[id="deploying-the-application"]`.
+
+### Assembly attributes
+
+Always include the repository's attributes file immediately after the content type declaration. Use a simple path (e.g., `_attributes/attributes.adoc`) that works via the symlinks set up in the drafts folder.
+
+### No parent-context constructions
+
+Since topics in this documentation are not reused across multiple assemblies, do NOT include parent-context preservation patterns (`ifdef::context[:parent-context: {context}]` etc.).
+
+---
+
+## Symlink setup for drafts
+
+Before writing assemblies, create symlinks in the drafts folder to the repository's shared directories. This ensures include paths work identically in drafts and when files are moved to the repo.
+
+When creating a new drafts folder for a JIRA ticket, set up symlinks to the repository's:
+- **Attributes folder** (e.g., `_attributes/`, `attributes/`)
+- **Snippets folder** (if it exists)
+- **Assemblies folder** (if it exists and you need to reference existing assemblies)
+
+**Example setup:**
+```bash
+# Create the drafts folder
+mkdir -p .claude/docs/drafts/<jira-id>/modules
+
+# Create symlinks to repo directories (adjust paths based on actual repo structure)
+cd .claude/docs/drafts/<jira-id>
+ln -s ../../../_attributes _attributes      # or whatever the attributes folder is called
+ln -s ../../../snippets snippets            # if snippets folder exists
+ln -s ../../../assemblies assemblies        # if assemblies folder exists
+```
+
+**Finding the correct paths:**
+1. Look for attributes file: `find . -name "attributes*.adoc" -type f | head -5`
+2. Look for snippets: `find . -type d -name "snippets" | head -5`
+3. Look for assemblies: `find . -type d -name "assemblies" | head -5`
+
+With symlinks in place, assemblies can use simple include paths like:
+```asciidoc
+include::_attributes/attributes.adoc[]
+include::modules/my-module.adoc[leveloffset=+1]
+include::snippets/common-prereqs.adoc[]
+```
+
+These paths work in the drafts folder (via symlinks) and continue working when files are moved to the repository root.
+
+---
+
+## Quality checklist
+
+Before completing an AsciiDoc module, verify:
+
+- [ ] Module type attribute set (`:_mod-docs-content-type:`)
+- [ ] Anchor ID includes `_{context}` for modules, NOT for assemblies
+- [ ] Short description with `[role="_abstract"]` present
+- [ ] Title is outcome-focused and follows module type convention
+- [ ] Ventilated prose used (one sentence per line)
+- [ ] Symlinks created in drafts folder to repo's `_attributes/`, `snippets/`, `assemblies/`
+- [ ] Assemblies include `_attributes/attributes.adoc[]` after content type
+- [ ] No parent-context constructions (`ifdef::context[:parent-context:]` patterns prohibited)
+- [ ] Code blocks specify source language
+- [ ] No callouts in code blocks
+- [ ] Product names use attributes
+- [ ] `vale` run and all ERROR-level issues fixed
+
+---
+
 ## Common violations
 
 | Issue | Wrong | Correct |

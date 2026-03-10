@@ -172,23 +172,13 @@ You MUST write complete documentation files organized by JIRA ID. Each file must
 5. Generate `mkdocs-nav.yml` with the suggested navigation structure
 6. Create an index file at `.claude/docs/drafts/<jira-id>/_index.md`
 
-## Module templates and reference
+## Format-specific references
 
-Read the AsciiDoc reference before writing any modules:
+Before writing any documentation, read the appropriate reference for your output format:
 
-```bash
-cat ${CLAUDE_PLUGIN_ROOT}/reference/asciidoc-reference.md
-```
+**For AsciiDoc (default):** Read @plugins/docs-tools/reference/asciidoc-reference.md — canonical templates for ASSEMBLY, CONCEPT, PROCEDURE, REFERENCE, and SNIPPET module types, plus AsciiDoc-specific writing conventions (code blocks, admonitions, short descriptions, user-replaced values, product attributes, symlink setup, and the quality checklist).
 
-This file contains the canonical templates, structural rules, and detailed guidance for ASSEMBLY, CONCEPT, PROCEDURE, REFERENCE, and SNIPPET module types. Use these templates as the starting structure for every new module.
-
-### Key template rules
-
-**Assembly IDs:** Do not use `_{context}` suffix in the Anchor ID for ASSEMBLY files. Use a simple descriptive ID: `[id="deploying-the-application"]`.
-
-**Assembly attributes:** Always include the repository's attributes file immediately after the content type declaration. Use a simple path (e.g., `_attributes/attributes.adoc`) that works via the symlinks set up in the drafts folder.
-
-**No parent-context constructions:** Since topics in this documentation are not reused across multiple assemblies, do NOT include parent-context preservation patterns (`ifdef::context[:parent-context: {context}]` etc.).
+**For MkDocs Markdown (`--mkdocs`):** Read @plugins/docs-tools/reference/mkdocs-reference.md — page structure, YAML frontmatter conventions, Material for MkDocs-specific syntax (admonitions, content tabs, code blocks), navigation fragment format, and the quality checklist.
 
 ## Writing guidelines
 
@@ -206,17 +196,15 @@ This file contains the canonical templates, structural rules, and detailed guida
 Always use ventilated prose (one sentence per line) in all documentation.
 This format makes content easier to review, edit, and diff in version control.
 
-**Good example:**
-```asciidoc
-[role="_abstract"]
+**Good:**
+```
 You can configure automatic scaling to adjust resources based on workload demands.
 Automatic scaling helps optimize costs while maintaining performance.
 This feature is available in version 4.10 and later.
 ```
 
-**Bad example:**
-```asciidoc
-[role="_abstract"]
+**Bad:**
+```
 You can configure automatic scaling to adjust resources based on workload demands. Automatic scaling helps optimize costs while maintaining performance. This feature is available in version 4.10 and later.
 ```
 
@@ -233,15 +221,15 @@ Do NOT apply ventilated prose to:
 - Code blocks
 - Titles and headings
 
-### Short descriptions (abstracts)
+### Short descriptions
 
-Every module must have a short description:
-- 2-3 sentences explaining what and why
-- Uses `[role="_abstract"]` tag
+Every module or page must have a short description (2-3 sentences explaining what and why):
 - Focuses on user benefits, uses active voice
 - No self-referential language (Vale: `SelfReferentialText.yml`)
 - No product-centric language (Vale: `ProductCentricWriting.yml`)
 - Make the user the subject: "You can configure..." not "This feature allows you to..."
+
+For format-specific syntax (AsciiDoc `[role="_abstract"]` vs MkDocs first paragraph), see @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md.
 
 ### Titles and headings
 
@@ -250,85 +238,8 @@ Every module must have a short description:
 - **Concept titles**: Noun phrase (e.g., "How autoscaling responds to demand")
 - **Procedure titles**: Imperative verb phrase (e.g., "Scale applications automatically")
 - **Reference titles**: Noun phrase (e.g., "Autoscaling configuration options")
-- **Assembly titles**: Top-level user job (e.g., "Manage application scaling")
+- **Assembly titles** (AsciiDoc only): Top-level user job (e.g., "Manage application scaling")
 - Industry-standard terms (SSL, API, RBAC) are acceptable; avoid product-specific vocabulary
-
-### Code blocks
-
-Always specify the source language:
-
-```asciidoc
-[source,terminal]
-----
-$ user command with dollar sign prompt
-----
-
-[source,terminal]
-----
-# root command with hash prompt
-----
-
-[source,yaml]
-----
-apiVersion: v1
-kind: ConfigMap
-----
-
-[source,json]
-----
-{
-  "key": "value"
-}
-----
-```
-
-**Do NOT use callouts** - AsciiDoc callouts are not supported in DITA and should not be used in new content. Instead, use one of these approaches to explain commands, options, or user-replaced values:
-
-**Option 1: Simple sentence** (for single values):
-```asciidoc
-In the following command, replace `<project_name>` with the name of your project:
-
-[source,terminal]
-----
-$ oc new-project <project_name>
-----
-```
-
-**Option 2: Definition list** (for multiple options/parameters):
-```asciidoc
-[source,yaml]
-----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: <my_pod>
-----
-+
---
-Where:
-
-`apiVersion`:: Specifies the API version.
-`kind`:: Specifies the resource type.
-`<my_pod>`:: Specifies the name of the pod.
---
-```
-
-**Option 3: Bulleted list** (for explaining YAML structure):
-```asciidoc
-[source,yaml]
-----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: example
-----
-
-* `apiVersion` specifies the API version.
-* `kind` specifies the resource type.
-* `metadata.name` specifies the name of the pod.
-```
-
-See the Red Hat supplementary style guide: https://redhat-documentation.github.io/supplementary-style-guide/#explain-commands-variables-in-code-blocks
 
 ### Prerequisites
 
@@ -348,137 +259,8 @@ Write prerequisites as completed conditions:
 - Use imperative mood: "Install the package" not "You should install"
 - One action per step
 - Use substeps when needed
-- Single-step procedures use bullet (`*`) not number
 
-### User-replaced values
-
-Mark values users must replace:
-
-```asciidoc
-Replace `<username>` with your actual username:
-
-[source,terminal]
-----
-$ ssh <username>@server.example.com
-----
-```
-
-### Admonitions
-
-Use sparingly and appropriately:
-
-```asciidoc
-[NOTE]
-====
-Additional helpful information.
-====
-
-[IMPORTANT]
-====
-Information users must not overlook.
-====
-
-[WARNING]
-====
-Information about potential data loss or security issues.
-====
-```
-
-## MkDocs Markdown format
-
-When the workflow prompt specifies MkDocs output, use these conventions instead of the AsciiDoc templates above. All writing guidelines (JTBD, minimalism, active voice, ventilated prose) still apply.
-
-### Page structure
-
-Every MkDocs page must have YAML frontmatter and a single `# h1` title:
-
-```markdown
----
-title: Scale applications automatically
-description: Configure horizontal pod autoscaling to adjust resources based on workload demands.
----
-
-# Scale applications automatically
-
-You can configure automatic scaling to adjust resources based on workload demands.
-Automatic scaling helps optimize costs while maintaining performance.
-```
-
-### Page types
-
-MkDocs pages follow the same CONCEPT / PROCEDURE / REFERENCE taxonomy. The page type is implicit from the content — no `:_mod-docs-content-type:` attribute is needed.
-
-### Code blocks
-
-Use fenced code blocks with language identifiers and optional titles:
-
-````markdown
-```terminal title="Create a new project"
-$ oc new-project <project_name>
-```
-
-```yaml title="Pod manifest"
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: example
-```
-````
-
-### Admonitions
-
-Use Material for MkDocs admonition syntax:
-
-```markdown
-!!! note
-    Additional helpful information.
-
-!!! important
-    Information users must not overlook.
-
-!!! warning
-    Information about potential data loss or security issues.
-```
-
-### Content tabs
-
-Use content tabs for platform-specific or alternative instructions:
-
-```markdown
-=== "Linux"
-
-    ```terminal
-    $ sudo dnf install package-name
-    ```
-
-=== "macOS"
-
-    ```terminal
-    $ brew install package-name
-    ```
-```
-
-### Internal links
-
-Use relative paths to other `.md` files:
-
-```markdown
-For more information, see [Autoscaling configuration options](configuration-options.md).
-```
-
-### Navigation fragment
-
-Generate a `mkdocs-nav.yml` file with the suggested navigation structure for the pages:
-
-```yaml
-nav:
-  - Overview: docs/understanding-feature.md
-  - Getting started:
-    - Install the operator: docs/installing-operator.md
-    - Configure the feature: docs/configuring-feature.md
-  - Reference:
-    - Configuration options: docs/configuration-parameters.md
-```
+For format-specific syntax (code blocks, admonitions, user-replaced values), see @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md.
 
 ## Style compliance workflow
 
@@ -510,85 +292,13 @@ vale /path/to/your/file.md     # MkDocs Markdown
 
 The `docs-review-modular-docs` (AsciiDoc only) and `docs-review-content-quality` skills provide additional structural and quality checks. The docs-reviewer agent runs the full suite of review skills.
 
+Refer to the format-specific quality checklist in @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md before finalizing.
+
 ## Output location
 
-**All documentation MUST be saved to `.claude/docs/drafts/<jira-id>/` organized by JIRA ticket ID.**
+**All documentation MUST be saved to `.claude/docs/drafts/<jira-id>/` organized by JIRA ticket ID.** See the folder structures in the "Output requirements" section above.
 
-**AsciiDoc layout:**
-```
-.claude/docs/
-├── drafts/
-│   └── <jira-id>/                        # Folder per JIRA ticket (e.g., rhaistrat-248)
-│       ├── _index.md                     # Index of all modules for this ticket
-│       ├── assembly_<name>.adoc          # Assembly files at root
-│       ├── modules/                      # All module files (actual directory, not symlink)
-│       │   ├── <concept-name>.adoc
-│       │   ├── <procedure-name>.adoc
-│       │   └── <reference-name>.adoc
-│       ├── _attributes -> ../../<repo-attributes>  # Symlink to repo attributes
-│       ├── snippets -> ../../<repo-snippets>       # Symlink to repo snippets
-│       └── assemblies -> ../../<repo-assemblies>   # Symlink to repo assemblies (if exists)
-├── plans/
-│   └── plan_<jira-id>_<yyyymmdd>.md
-├── requirements/
-│   └── requirements_<jira-id>_<yyyymmdd>.md
-└── reviews/
-    └── review_<jira-id>_<yyyymmdd>.md
-```
-
-**MkDocs layout:**
-```
-.claude/docs/
-├── drafts/
-│   └── <jira-id>/                        # Folder per JIRA ticket (e.g., rhaistrat-248)
-│       ├── _index.md                     # Index of all pages for this ticket
-│       ├── mkdocs-nav.yml                # Suggested nav tree fragment
-│       └── docs/                         # All page files
-│           ├── <concept-name>.md
-│           ├── <procedure-name>.md
-│           └── <reference-name>.md
-├── plans/
-│   └── plan_<jira-id>_<yyyymmdd>.md
-├── requirements/
-│   └── requirements_<jira-id>_<yyyymmdd>.md
-└── reviews/
-    └── review_<jira-id>_<yyyymmdd>.md
-```
-
-### Symlink setup for drafts (AsciiDoc only)
-
-**IMPORTANT:** Before writing AsciiDoc assemblies, create symlinks in the drafts folder to the repository's shared directories. This ensures include paths work identically in drafts and when files are moved to the repo. Skip this step for MkDocs output.
-
-When creating a new drafts folder for a JIRA ticket, set up symlinks to the repository's:
-- **Attributes folder** (e.g., `_attributes/`, `attributes/`)
-- **Snippets folder** (if it exists)
-- **Assemblies folder** (if it exists and you need to reference existing assemblies)
-
-**Example setup:**
-```bash
-# Create the drafts folder
-mkdir -p .claude/docs/drafts/<jira-id>/modules
-
-# Create symlinks to repo directories (adjust paths based on actual repo structure)
-cd .claude/docs/drafts/<jira-id>
-ln -s ../../../_attributes _attributes      # or whatever the attributes folder is called
-ln -s ../../../snippets snippets            # if snippets folder exists
-ln -s ../../../assemblies assemblies        # if assemblies folder exists
-```
-
-**Finding the correct paths:**
-1. Look for attributes file: `find . -name "attributes*.adoc" -type f | head -5`
-2. Look for snippets: `find . -type d -name "snippets" | head -5`
-3. Look for assemblies: `find . -type d -name "assemblies" | head -5`
-
-With symlinks in place, assemblies can use simple include paths like:
-```asciidoc
-include::_attributes/attributes.adoc[]
-include::modules/my-module.adoc[leveloffset=+1]
-include::snippets/common-prereqs.adoc[]
-```
-
-These paths work in the drafts folder (via symlinks) and continue working when files are moved to the repository root.
+For AsciiDoc output, set up symlinks to the repository's `_attributes/`, `snippets/`, and `assemblies/` directories as described in @plugins/docs-tools/reference/asciidoc-reference.md. Skip symlinks for MkDocs output.
 
 ### JIRA ID extraction
 
@@ -647,46 +357,4 @@ rhaistrat-248/
 | assembly_deploying-feature.adoc | Deploying the feature |
 ```
 
-## Product attributes (AsciiDoc only)
-
-When writing AsciiDoc, always use attributes from `_attributes/attributes.adoc`. Read the attributes file first to understand available attributes.
-
-```asciidoc
-{product-name} version {product-version} provides...
-```
-
-For MkDocs output, use the full product name directly in the text (no attribute substitution).
-
-## Quality checklist
-
-### AsciiDoc checklist
-
-Before completing an AsciiDoc module, verify:
-
-- [ ] Module type attribute set (`:_mod-docs-content-type:`)
-- [ ] Anchor ID includes `_{context}` for modules, NOT for assemblies
-- [ ] Short description with `[role="_abstract"]` present
-- [ ] Title is outcome-focused and follows module type convention
-- [ ] Ventilated prose used (one sentence per line)
-- [ ] Symlinks created in drafts folder to repo's `_attributes/`, `snippets/`, `assemblies/`
-- [ ] Assemblies include `_attributes/attributes.adoc[]` after content type
-- [ ] No parent-context constructions (`ifdef::context[:parent-context:]` patterns prohibited)
-- [ ] Code blocks specify source language
-- [ ] Product names use attributes
-- [ ] `vale` run and all ERROR-level issues fixed
-
-### MkDocs checklist
-
-Before completing an MkDocs page, verify:
-
-- [ ] YAML frontmatter present with `title` and `description`
-- [ ] Title is outcome-focused and follows page type convention
-- [ ] Heading hierarchy starts at `# h1`, no skipped levels
-- [ ] Ventilated prose used (one sentence per line)
-- [ ] Code blocks use fenced syntax with language identifier
-- [ ] Admonitions use Material for MkDocs syntax (`!!! type`)
-- [ ] Internal links use relative paths to other `.md` files
-- [ ] `mkdocs-nav.yml` generated with suggested navigation tree
-- [ ] `vale` run and all ERROR-level issues fixed
-
-Style compliance (self-referential text, product-centric writing, terminology, etc.) is enforced by Vale rules and verified by the docs-reviewer agent.
+Style compliance (self-referential text, product-centric writing, terminology, etc.) is enforced by Vale rules and verified by the docs-reviewer agent. See the quality checklist in @plugins/docs-tools/reference/asciidoc-reference.md or @plugins/docs-tools/reference/mkdocs-reference.md for the complete pre-save verification steps.
