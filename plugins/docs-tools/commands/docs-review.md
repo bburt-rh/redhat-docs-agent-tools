@@ -67,6 +67,12 @@ The `--local` and `--pr` modes share the same multi-agent review pipeline. The o
 
 ## Step 1: Pre-flight Checks
 
+Resolve the plugin root directory first — all subsequent steps use it to locate scripts and agent files:
+
+```bash
+CLAUDE_PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+```
+
 ### For --pr mode
 
 Launch a haiku agent to check if any of the following are true:
