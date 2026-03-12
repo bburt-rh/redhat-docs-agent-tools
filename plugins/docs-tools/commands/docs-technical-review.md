@@ -1,5 +1,5 @@
 ---
-description: Validate documentation technical accuracy against code repositories. Detects removed commands, changed API signatures, stale code examples, renamed config keys, and moved file paths. Auto-fixes high-confidence issues (>=65%) and interactively walks through lower-confidence fixes. Use this command when asked to check if docs match the code, verify CLI examples still work, validate API references, find outdated commands or stale documentation, compare docs against a PR or JIRA ticket, or run a technical review. Also use when the user says things like "are these docs accurate" or "check the code examples".
+description: Validate documentation technical accuracy against code repositories — detects stale commands, flags, APIs, config keys, code examples, and file paths. Use when asked to check if docs match the code, verify examples, find outdated references, or run a technical review.
 argument-hint: --docs <source> [--docs <source>...] [--code URL] [--jira TICKET] [--pr URL] [--gdoc URL] [--fix]
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Skill, WebFetch, AskUserQuestion
 ---
