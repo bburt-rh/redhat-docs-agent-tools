@@ -246,7 +246,7 @@ cat > "$STATE_FILE" << EOF
     "writing": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
     "technical_review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null, "iterations": 0},
     "review": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
-    "integrate": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null},
+    "integrate": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null, "phase": null},
     "create_jira": {"status": "pending", "output_file": null, "started_at": null, "completed_at": null}
   }
 }
@@ -764,9 +764,9 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 
 After the agent completes, verify the review report exists.
 
-### Stage 6: Integrate (docs-integrator — optional)
+### Stage 6: Integrate (docs-integrator — optional, phase-driven)
 
-This stage only runs when `--integrate` was provided. It uses the docs-integrator agent in two phases: PLAN (propose changes) then EXECUTE (apply changes after user confirmation).
+This stage only runs when `--integrate` was provided. It uses a `phase` field in the state to drive a conditional dispatch — each phase does one action, updates state, then the orchestrator re-evaluates.
 
 **Check if stage should run:**
 
@@ -789,9 +789,16 @@ INTEGRATION_PLAN_FILE="${DRAFTS_DIR}/_integration_plan.md"
 INTEGRATION_REPORT_FILE="${DRAFTS_DIR}/_integration_report.md"
 ```
 
-**Phase 1: PLAN**
+**Phase dispatch** — read `stages.integrate.phase` from the state file and branch:
 
-Launch the docs-integrator agent with `Phase: PLAN` to analyze the repo and produce an integration plan.
+```bash
+INTEGRATE_PHASE=$(jq -r '.stages.integrate.phase // "null"' "$STATE_FILE")
+```
+
+#### If phase is `null` (first entry)
+
+1. Mark the integrate stage as `in_progress` (use the standard state update command)
+2. Launch the docs-integrator agent with `Phase: PLAN`:
 
 **Agent tool parameters:**
 - `description`: `Plan integration of documentation for <TICKET>`
@@ -808,26 +815,50 @@ Launch the docs-integrator agent with `Phase: PLAN` to analyze the repo and prod
 >
 > Save the integration plan to: `<INTEGRATION_PLAN_FILE>`
 
-After the PLAN agent completes, verify that `_integration_plan.md` exists.
+3. Verify that `_integration_plan.md` exists
+4. Update state — set `stages.integrate.phase` to `"awaiting_confirmation"`:
 
-**Phase 2: User confirmation**
+```bash
+TMP=$(mktemp)
+jq '.stages.integrate.phase = "awaiting_confirmation"' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
+```
 
-Read `_integration_plan.md` and present a summary to the user. The summary should include:
+5. **Fall through to the `awaiting_confirmation` branch below** — do NOT mark the stage as completed, do NOT proceed to the next stage
 
-1. Detected build framework
-2. Number of files to move/update
-3. The File Operations table from the plan
-4. Any conflicts flagged
+#### If phase is `awaiting_confirmation`
 
-Then ask the user to confirm:
+1. Read `_integration_plan.md`
+2. Present a summary to the user that includes:
+   - Detected build framework
+   - Number of files to copy/update
+   - The Operations table from the plan
+   - Any conflicts flagged
+3. Ask the user to confirm using the AskUserQuestion tool:
 
 > The integration plan proposes the changes listed above. Shall I proceed with the integration? (yes/no)
 
-If the user responds **no**, mark the `integrate` stage as completed with the plan file as output and proceed to the next stage without executing. The user can apply changes manually using the plan as a guide.
+4. **Wait for the user's response before continuing.**
+5. **If the user responds NO**: Update state — set `stages.integrate.phase` to `"declined"`:
 
-**Phase 3: EXECUTE**
+```bash
+TMP=$(mktemp)
+jq '.stages.integrate.phase = "declined"' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
+```
 
-If the user confirms, launch the docs-integrator agent with `Phase: EXECUTE` to apply the integration plan.
+Fall through to the `declined` branch below.
+
+6. **If the user responds YES**: Update state — set `stages.integrate.phase` to `"confirmed"`:
+
+```bash
+TMP=$(mktemp)
+jq '.stages.integrate.phase = "confirmed"' "$STATE_FILE" > "$TMP" && mv "$TMP" "$STATE_FILE"
+```
+
+Fall through to the `confirmed` branch below.
+
+#### If phase is `confirmed`
+
+1. Launch the docs-integrator agent with `Phase: EXECUTE`:
 
 **Agent tool parameters:**
 - `description`: `Execute integration of documentation for <TICKET>`
@@ -845,7 +876,13 @@ If the user confirms, launch the docs-integrator agent with `Phase: EXECUTE` to 
 >
 > Save the integration report to: `<INTEGRATION_REPORT_FILE>`
 
-After the EXECUTE agent completes, verify that `_integration_report.md` exists. Mark the `integrate` stage as completed with the report file as output.
+2. Verify that `_integration_report.md` exists
+3. Mark the integrate stage as completed with the report file as output
+
+#### If phase is `declined`
+
+1. Mark the integrate stage as completed with the plan file as output
+2. Inform the user the plan is saved for manual reference
 
 ### Stage 7: Create JIRA (optional — direct bash/curl)
 
