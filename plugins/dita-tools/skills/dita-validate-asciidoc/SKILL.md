@@ -16,7 +16,7 @@ This skill runs Vale with the AsciiDocDITA rule set to identify DITA compatibili
 ## Usage
 
 ```bash
-bash dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh <file.adoc> [options]
+bash scripts/validate_asciidoc.sh <file.adoc> [options]
 ```
 
 ### Options
@@ -31,13 +31,13 @@ bash dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh <file
 
 ```bash
 # Validate an assembly and all includes
-bash dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh master.adoc
+bash scripts/validate_asciidoc.sh master.adoc
 
 # Only validate existing files
-bash dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh master.adoc --existing
+bash scripts/validate_asciidoc.sh master.adoc --existing
 
 # List files that would be validated
-bash dita-tools/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh master.adoc --list-only
+bash scripts/validate_asciidoc.sh master.adoc --list-only
 ```
 
 ## Output format
@@ -109,6 +109,6 @@ BasedOnStyles = AsciiDocDITA
 ## Script location
 
 ```
-dita-tools/skills/dita-validate-asciidoc/scripts/
+scripts/
 └── validate_asciidoc.sh    # Bash script for DITA validation
 ```

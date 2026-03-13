@@ -28,17 +28,17 @@ When the user asks to transform callouts:
 
    For bullet lists (default):
    ```bash
-   ruby skills/dita-callouts/scripts/callouts.rb <file> --rewrite-bullets
+   ruby scripts/callouts.rb <file> --rewrite-bullets
    ```
 
    For definition lists:
    ```bash
-   ruby skills/dita-callouts/scripts/callouts.rb <file> --rewrite-deflists
+   ruby scripts/callouts.rb <file> --rewrite-deflists
    ```
 
    For inline comments:
    ```bash
-   ruby skills/dita-callouts/scripts/callouts.rb <file> --add-inline-comments
+   ruby scripts/callouts.rb <file> --add-inline-comments
    ```
 
 5. **For bullet list and definition list modes**: After running the script, review and rewrite each entry to follow the Red Hat style guide format:
@@ -262,4 +262,4 @@ Where TYPE is one of:
 
 ## Extension location
 
-The Ruby extension is located at: `skills/dita-callouts/scripts/callouts.rb`
+The Ruby extension is located at: `scripts/callouts.rb`

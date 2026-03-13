@@ -65,7 +65,7 @@ include::../modules/proc-configure.adoc[leveloffset=+1]
 ## Usage
 
 ```bash
-bash dita-tools/skills/dita-includes/scripts/find_includes.sh <file.adoc> [options]
+bash scripts/find_includes.sh <file.adoc> [options]
 ```
 
 ### Options
@@ -81,16 +81,16 @@ bash dita-tools/skills/dita-includes/scripts/find_includes.sh <file.adoc> [optio
 
 ```bash
 # List all includes from an assembly (absolute paths by default)
-bash dita-tools/skills/dita-includes/scripts/find_includes.sh master.adoc
+bash scripts/find_includes.sh master.adoc
 
 # Get relative paths instead
-bash dita-tools/skills/dita-includes/scripts/find_includes.sh docs/guide.adoc --relative
+bash scripts/find_includes.sh docs/guide.adoc --relative
 
 # Only list files that exist (skip broken includes)
-bash dita-tools/skills/dita-includes/scripts/find_includes.sh master.adoc --existing
+bash scripts/find_includes.sh master.adoc --existing
 
 # Combine options
-bash dita-tools/skills/dita-includes/scripts/find_includes.sh master.adoc -e
+bash scripts/find_includes.sh master.adoc -e
 ```
 
 ## Limitations
@@ -109,6 +109,6 @@ bash dita-tools/skills/dita-includes/scripts/find_includes.sh master.adoc -e
 ## Script location
 
 ```
-dita-tools/skills/dita-includes/scripts/
+scripts/
 └── find_includes.sh      # Bash script for recursive include discovery
 ```
