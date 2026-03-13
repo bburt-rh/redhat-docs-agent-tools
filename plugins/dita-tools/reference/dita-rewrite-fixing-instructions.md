@@ -525,6 +525,7 @@ Handle assembly content based on its location:
 
 **CRITICAL**: Never remove assembly content without relocating it. Assembly introductions, section explanations, and transitional text provide valuable context for readers.
 
+<<<<<<< HEAD
 **CRITICAL**: Preserve all conditional directives when extracting content to modules. If a section heading has product-conditional variants (e.g., `{sno}` vs `{sno-okd}` inside `ifdef`/`ifndef` blocks), reproduce all variants in the new module using the same conditional structure. If an Additional resources section has product-specific links inside conditional blocks, preserve both branches. Never drop content from a conditional branch — both branches must appear in the output.
 
 **Example - Conditional section heading preserved in extracted module:**
@@ -587,6 +588,7 @@ endif::openshift-origin[]
 
 This structure must be preserved exactly — do NOT collapse it to only the `ifndef` branch or only the `ifdef` branch.
 
+
 **Example - Section heading with explanation becomes new module:**
 
 Before (assembly):
@@ -624,6 +626,18 @@ You have two options for adding certificates:
 * Add to cluster-wide bundle for global trust
 * Add to custom bundle for limited scope
 ```
+
+**CRITICAL — Adjust xref paths when moving content to new modules**: When content containing `xref:` cross-references is moved from an assembly to a new module file, you **must** recalculate the relative paths. The assembly and the new module are at different directory depths, so the `../` climbing prefix will differ.
+
+For example, if the assembly is at `installing/installing_sno/install-sno-installing-sno.adoc` (depth 2) and the new module is created at `modules/con_install-sno-installing-manually.adoc` (depth 1), every `xref:` path must be adjusted:
+
+- **Wrong** (copied verbatim from assembly): `xref:../../installing/installing_bare_metal/...`
+- **Correct** (adjusted for module depth): `xref:../installing/installing_bare_metal/...`
+
+To calculate the correct path:
+1. Count the directory depth of the **assembly** (number of `/` separators in its path from the repo root)
+2. Count the directory depth of the **new module**
+3. Adjust the number of `../` prefixes in each xref by the difference (assembly depth − module depth)
 
 ---
 
