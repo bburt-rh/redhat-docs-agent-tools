@@ -185,6 +185,17 @@ Follow these guidelines when creating the new modules:
 - Write descriptive prose rather than bullet lists of topics
 - Avoid phrases like "This assembly covers..." or "In this section, you will learn..."
 
+## Adjusting xref paths
+
+When content containing `xref:` cross-references is moved from an assembly to a new module, you **must** recalculate the relative `../` climbing paths. The assembly and the new module are typically at different directory depths.
+
+For example, if the assembly is at `installing/installing_sno/master.adoc` (depth 2) and the new module is at `modules/about-installing-sno.adoc` (depth 1):
+
+- **Wrong** (copied verbatim): `xref:../../storage/persistent_storage/...`
+- **Correct** (adjusted): `xref:../storage/persistent_storage/...`
+
+To calculate: count directory depth of both files from the repo root, then adjust `../` count by (assembly depth − module depth).
+
 ## Verification
 
 After completing the extraction:
@@ -193,3 +204,4 @@ After completing the extraction:
 2. Verify the assembly includes the new module as the first include after attributes
 3. Verify no duplicate content exists between the module and assembly
 4. Check that all product attributes resolve correctly
+5. Verify that any `xref:` paths in the new module have been adjusted for the module's directory depth
