@@ -16,17 +16,17 @@ This skill runs `asciidoctor` on an input file to validate its syntax. It captur
 ## Usage
 
 ```bash
-bash dita-tools/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh <file.adoc>
+bash scripts/check_asciidoctor.sh <file.adoc>
 ```
 
 ### Examples
 
 ```bash
 # Check a single module
-bash dita-tools/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh modules/con-overview.adoc
+bash scripts/check_asciidoctor.sh modules/con-overview.adoc
 
 # Check an assembly
-bash dita-tools/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh guides/master.adoc
+bash scripts/check_asciidoctor.sh guides/master.adoc
 ```
 
 ## Output
@@ -212,6 +212,6 @@ Example content
 ## Script location
 
 ```
-dita-tools/skills/dita-check-asciidoctor/scripts/
+scripts/
 └── check_asciidoctor.sh    # Bash script for asciidoctor validation
 ```
