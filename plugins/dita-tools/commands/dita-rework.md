@@ -310,6 +310,60 @@ are not valid in DITA (only examples, figures, and tables support titles).
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
 
+#### 5l. dita-check-asciidoctor
+
+Run asciidoctor to check for syntax errors introduced during the rework. If errors are found, investigate and fix them before continuing.
+
+```bash
+ASSEMBLY_ABS=$(realpath "${ASSEMBLY_PATH}")
+
+bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh "${ASSEMBLY_ABS}"
+EXIT_CODE=$?
+```
+
+**Handle the result based on exit code:**
+
+- **Exit code 0** (no issues): Continue to Step 6.
+- **Exit code 1** (warnings) or **Exit code 2** (errors): Investigate and fix the issues before continuing:
+
+  1. Read the asciidoctor log output to identify the warnings/errors and their line numbers
+  2. Read the source file(s) at the reported line numbers
+  3. Identify and fix the root cause — look for common issues:
+     - Unclosed conditionals (`ifdef::` without `endif::[]`)
+     - Unclosed admonition blocks (`====` without closing pair)
+     - Unclosed code/listing blocks (`----` without closing pair)
+     - Missing include files
+     - Malformed attributes
+     - Missing or undefined attribute references
+  4. After applying fixes, commit the changes:
+
+     ```bash
+     git add -A && git commit -m "dita-check-asciidoctor: Fix asciidoctor warnings and errors
+
+     Fixed issues detected by asciidoctor after DITA rework.
+
+     Co-Authored-By: Claude <noreply@anthropic.com>"
+     ```
+
+  5. Re-run the asciidoctor check to confirm the issues are resolved:
+
+     ```bash
+     bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh "${ASSEMBLY_ABS}" || true
+     ```
+
+  6. Re-run `dita-validate-asciidoc` to ensure the fixes did not introduce new Vale issues:
+
+     ```bash
+     bash ${CLAUDE_PLUGIN_ROOT}/skills/dita-validate-asciidoc/scripts/validate_asciidoc.sh "${ASSEMBLY_PATH}" --existing > /tmp/dita-rework-vale-recheck.txt
+
+     RECHECK_COUNT=$(grep -v -E "AsciiDocDITA\.(ConditionalCode|AttributeReference|IncludeDirective|TagDirective)" /tmp/dita-rework-vale-recheck.txt | wc -l)
+     echo "Vale issues after asciidoctor fix: ${RECHECK_COUNT}"
+     ```
+
+     If new Vale issues were introduced by the fix, address them before continuing.
+
+**IMPORTANT**: This step must not cause the overall workflow to fail. If issues cannot be resolved after investigation, log them as warnings and continue to Step 6.
+
 ### Step 6: Validate Changes and Count Fixed Errors
 
 Run `dita-validate-asciidoc` again and compare with the baseline to validate the remediation work.
