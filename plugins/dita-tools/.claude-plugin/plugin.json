@@ -1,6 +1,6 @@
 {
   "name": "dita-tools",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "AsciiDoc cleanup, validation, and rewriting tools for DITA conversion preparation.",
   "author": {
     "name": "Red Hat Documentation Team",
