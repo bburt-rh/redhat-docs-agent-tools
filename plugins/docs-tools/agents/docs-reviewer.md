@@ -99,7 +99,7 @@ Apply checklists from each review skill. Key items are summarized below.
 
 ### 1. Format-specific compliance
 
-Apply `docs-tools:docs-review-modular-docs` for `.adoc` files:
+**AsciiDoc (`.adoc` files)** — apply `docs-tools:docs-review-modular-docs`:
 
 - [ ] Module type declared with `:_mod-docs-content-type:`
 - [ ] Valid type: CONCEPT, PROCEDURE, REFERENCE, or ASSEMBLY
@@ -110,6 +110,17 @@ Apply `docs-tools:docs-review-modular-docs` for `.adoc` files:
 - [ ] Procedure modules use only allowed sections (.Prerequisites, .Procedure, .Verification, etc.)
 - [ ] Assemblies set `:context:` before includes
 - [ ] Modules included with `leveloffset` and appropriate level
+
+**MkDocs Markdown (`.md` files)** — `docs-tools:docs-review-modular-docs` does not apply; check these instead:
+
+- [ ] YAML frontmatter present with `title` and `description`
+- [ ] Title follows type convention (imperative for procedures, noun for others)
+- [ ] First paragraph serves as short description (what and why)
+- [ ] Heading hierarchy starts at `# h1`, no skipped levels
+- [ ] Admonitions use Material for MkDocs syntax (`!!! note`, `!!! warning`)
+- [ ] Code blocks include language tags and titles where appropriate
+- [ ] Content tabs use `=== "Tab title"` syntax if present
+- [ ] No AsciiDoc-specific markup (no `[role="_abstract"]`, no `:_mod-docs-content-type:`, no `ifdef::context`)
 
 ### 2. Content quality (docs-review-content-quality)
 
