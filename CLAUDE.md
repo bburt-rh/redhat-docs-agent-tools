@@ -50,6 +50,13 @@ Skill: docs-tools:jira-reader, args: "PROJ-123"
 
 Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 
+### When to use each approach
+
+| Approach | When to use | Examples |
+|---|---|---|
+| `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Running a script to fetch data, post comments, detect state | `git_pr_reader.py info`, `git_pr_reader.py post`, `callouts.rb` |
+| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `jira-reader`, `rh-ssg-formatting`, review skills |
+
 ## Contributing rules
 
 - Use kebab-case for plugin and command names
