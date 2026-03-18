@@ -45,7 +45,7 @@ Skill: docs-tools:git-pr-reader, args: "info <url> --json"
 
 Use `Skill:` pseudocode only for pure knowledge/checklist skills that have no backing script:
 ```
-Skill: docs-tools:jira-reader, args: "PROJ-123"
+Skill: docs-tools:rh-ssg-formatting, args: "review path/to/file.adoc"
 ```
 
 Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
@@ -54,8 +54,8 @@ Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 
 | Approach | When to use | Examples |
 |---|---|---|
-| `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Running a script to fetch data, post comments, detect state | `git_pr_reader.py info`, `git_pr_reader.py post`, `callouts.rb` |
-| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `jira-reader`, `rh-ssg-formatting`, review skills |
+| `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Running a script to fetch data, post comments, detect state | `git_pr_reader.py info`, `jira_reader.py`, `callouts.rb` |
+| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `rh-ssg-formatting`, `ibm-sg-punctuation`, review skills |
 
 ## Contributing rules
 
