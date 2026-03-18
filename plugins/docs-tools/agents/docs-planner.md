@@ -580,26 +580,26 @@ Read style guide files directly from the local docs-guidelines directory (set `D
 - LLM-optimized summaries: `llms.txt` files in each directory
 
 ### Querying JIRA
-Invoke the `docs-tools:jira-reader` skill to query JIRA issues.
+Use the jira-reader script to query JIRA issues.
 
 **Fetch issue details:**
-```
-Skill: docs-tools:jira-reader, args: "PROJ-123"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue PROJ-123
 ```
 
 **Fetch issue with comments:**
-```
-Skill: docs-tools:jira-reader, args: "PROJ-123 --include-comments"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --issue PROJ-123 --include-comments
 ```
 
 **Search issues by JQL:**
-```
-Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND fixVersion=1.0.0'"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project=PROJ AND fixVersion=1.0.0'
 ```
 
 **Search with full details:**
-```
-Skill: docs-tools:jira-reader, args: "--jql 'project=PROJ AND labels=docs-needed' --fetch-details"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py --jql 'project=PROJ AND labels=docs-needed' --fetch-details
 ```
 
 ### Reviewing GitHub/GitLab PRs
@@ -622,18 +622,18 @@ Requires tokens in `~/.env`:
 
 ### Reading Red Hat documentation with redhat-docs-toc
 
-Research existing Red Hat documentation to understand patterns and gaps. Use the `docs-tools:redhat-docs-toc` skill to extract article URLs from documentation TOC pages:
+Research existing Red Hat documentation to understand patterns and gaps. Extract article URLs from documentation TOC pages:
 
-```
-Skill: docs-tools:redhat-docs-toc, args: "https://docs.redhat.com/en/documentation/product/version/html/guide/index"
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/redhat-docs-toc/scripts/toc_extractor.py --url "https://docs.redhat.com/en/documentation/product/version/html/guide/index"
 ```
 
 ### Extracting article content with article-extractor
 
-Download and analyze existing Red Hat documentation for planning. Use the `docs-tools:article-extractor` skill to extract article content as markdown:
+Download and analyze existing Red Hat documentation for planning. Extract article content as markdown:
 
-```
-Skill: docs-tools:article-extractor, args: "https://docs.redhat.com/..."
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/article-extractor/scripts/article_extractor.py --url "https://docs.redhat.com/..."
 ```
 
 Use these skills to:

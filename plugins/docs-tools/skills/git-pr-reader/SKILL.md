@@ -1,7 +1,7 @@
 ---
 name: git-pr-reader
 description: "Unified interface for GitHub PRs and GitLab MRs: read PR/MR data with file filtering, list changed files, get review comments, post inline review comments, extract line numbers from diffs, validate comments, auto-detect PR/MR for current branch, and get unified diffs. Automatically detects GitHub vs GitLab from URL. Use this skill for analyzing code changes, posting review feedback, and documentation workflows."
-author: Aidan Reilly (aireilly@redhat.com)
+author: Gabriel McGoldrick (gmcgoldr@redhat.com)
 allowed-tools: Read, Bash, Grep, Glob
 ---
 
