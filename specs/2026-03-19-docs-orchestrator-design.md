@@ -44,10 +44,14 @@ The orchestrator is **workflow-agnostic** — it knows how to read YAML, resolve
 
 **Location**: `.claude/docs-orchestrator.yaml` (single workflow) or `.claude/docs-orchestrator/<name>.yaml` (multiple workflows).
 
+The workflow YAML is the single source of truth for all orchestration metadata — params, preflight, step definitions, and wiring. No sidecar files or custom frontmatter. Claude Code does not support custom frontmatter fields, so all orchestration config lives in the YAML.
+
+The YAML supports shorthand syntax for common patterns, keeping simple workflows concise while allowing full control when needed.
+
 ```yaml
 workflow:
-  name: <string>                        # Unique workflow identifier
-  description: <string>                 # Human-readable description
+  name: <string>                        # Optional — inferred from filename
+  description: <string>                 # Optional
 
   params:                               # Declared parameters
     <param_name>:
@@ -56,10 +60,8 @@ workflow:
       default: <value>                  # Default value (required if required is false)
       flag: <string>                    # CLI flag (e.g., --pr, --mkdocs, --integrate)
       flag_value: <string>              # For choice params: what value the flag sets
-                                        # e.g., flag: --mkdocs, flag_value: mkdocs
                                         # Only one flag maps to one value. Unmatched
-                                        # choices use the default. No --adoc flag needed
-                                        # when adoc is the default.
+                                        # choices use the default.
       choices: [<values>]              # For type: choice — allowed values
       accumulate: <bool>               # For list params: repeated flags append
       description: <string>
@@ -81,9 +83,9 @@ workflow:
 ### Step schema
 
 ```yaml
-- name: <string>                        # Unique step identifier (kebab-case)
-  skill: <string>                       # Fully qualified skill name (plugin:skill)
-  description: <string>                 # For status display
+- skill: <string>                       # REQUIRED — fully qualified skill name (plugin:skill)
+  name: <string>                        # Optional — defaults to last segment of skill name
+  description: <string>                 # Optional — defaults to skill's frontmatter description
 
   args: <string>                        # Template string passed as skill args
                                         # Resolved by orchestrator before invocation
@@ -91,24 +93,51 @@ workflow:
   output: <string>                      # Output file path pattern, relative to output_base
                                         # null for steps with no file output (e.g., JIRA creation)
 
-  condition: <string>                   # Optional — step runs only if expression is truthy
-                                        # Skipped (not failed) if false
+  when: <string>                        # Shorthand condition — just a param name (truthy check)
+  condition: <string>                   # Full condition — expression with == or !=
 
-  iterate:                              # Optional — step runs in a loop
+  iterate:                              # Optional — step runs in a loop (longhand)
     max: <int>                          # Maximum iterations (required)
     check:
       file: <string>                    # Template — file to read after each iteration
       pattern: <string>                 # Regex with one capture group to extract a value
       done_when: <string>               # Value that means "stop iterating"
     fix:
-      skill: <string>                   # Skill to invoke between iterations (to fix issues)
+      skill: <string>                   # Skill to invoke between iterations
       args: <string>                    # Template string for fix skill args
 
-  confirm:                              # Optional — ask user before running this step
+  # Shorthand: iterate: <int>          # Just max — check/fix must be in longhand
+
+  confirm:                              # Optional — ask user before running this step (longhand)
     prompt: <string>                    # Question to present (supports {templates})
     show_file: <string>                 # Template — file to read and display before asking
     on_decline: complete | skip         # complete = mark step done, skip = skip entirely
+
+  # Shorthand: confirm: "<string>"     # Just prompt — show_file defaults to previous step output,
+                                        # on_decline defaults to complete
 ```
+
+### Shorthand expansions
+
+| Shorthand | Expands to |
+|---|---|
+| `when: integrate` | `condition: "{integrate} == true"` (bool params) |
+| `when: create_jira_project` | `condition: "{create_jira_project} != null"` (string/list params) |
+| `iterate: 3` | `iterate: { max: 3 }` — `check` and `fix` must still be specified in longhand |
+| `confirm: "Proceed?"` | `confirm: { prompt: "Proceed?", show_file: <previous step's output>, on_decline: complete }` |
+
+The `when` shorthand infers the comparison operator from the param type: `== true` for bool params, `!= null` for string/list params.
+
+### Conventions (fields inferred when omitted)
+
+| Field | Convention when omitted |
+|---|---|
+| `workflow.name` | Inferred from filename (`docs-orchestrator.yaml` → `docs-orchestrator`) |
+| `step.name` | Last segment of skill name (`docs-tools:docs-workflow-requirements` → `docs-workflow-requirements`) |
+| `step.description` | Read from the skill's frontmatter `description` (a standard Claude Code field) |
+| `output_base` | `.claude/docs` |
+| `confirm.on_decline` | `complete` |
+| `confirm.show_file` | Previous step's output path |
 
 ### Template resolution
 
