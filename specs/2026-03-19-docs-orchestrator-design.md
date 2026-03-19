@@ -123,7 +123,7 @@ workflow:
 |---|---|
 | `when: integrate` | `condition: "{integrate} == true"` (bool params) |
 | `when: create_jira_project` | `condition: "{create_jira_project} != null"` (string/list params) |
-| `iterate: 3` | `iterate: { max: 3 }` — `check` and `fix` must still be specified in longhand |
+| `iterate: 3` | `iterate: { max: 3 }` — runs unconditionally N times (no convergence check). If `check` and `fix` are needed, use the longhand object form |
 | `confirm: "Proceed?"` | `confirm: { prompt: "Proceed?", show_file: <previous step's output>, on_decline: complete }` |
 
 The `when` shorthand infers the comparison operator from the param type: `== true` for bool params, `!= null` for string/list params.
@@ -537,8 +537,8 @@ This is the most complex step skill because the orchestrator drives its review-f
 
 - Vale linting: `vale-tools:lint-with-vale`
 - Red Hat docs: `docs-tools:docs-review-modular-docs`, `docs-tools:docs-review-content-quality`
-- IBM Style Guide: `ibm-sg-audience-and-medium`, `ibm-sg-language-and-grammar`, `ibm-sg-punctuation`, `ibm-sg-numbers-and-measurement`, `ibm-sg-structure-and-format`, `ibm-sg-references`, `ibm-sg-technical-elements`, `ibm-sg-legal-information`
-- Red Hat SSG: `rh-ssg-grammar-and-language`, `rh-ssg-formatting`, `rh-ssg-structure`, `rh-ssg-technical-examples`, `rh-ssg-gui-and-links`, `rh-ssg-legal-and-support`, `rh-ssg-accessibility`, `rh-ssg-release-notes` (if applicable)
+- IBM Style Guide: `docs-tools:ibm-sg-audience-and-medium`, `docs-tools:ibm-sg-language-and-grammar`, `docs-tools:ibm-sg-punctuation`, `docs-tools:ibm-sg-numbers-and-measurement`, `docs-tools:ibm-sg-structure-and-format`, `docs-tools:ibm-sg-references`, `docs-tools:ibm-sg-technical-elements`, `docs-tools:ibm-sg-legal-information`
+- Red Hat SSG: `docs-tools:rh-ssg-grammar-and-language`, `docs-tools:rh-ssg-formatting`, `docs-tools:rh-ssg-structure`, `docs-tools:rh-ssg-technical-examples`, `docs-tools:rh-ssg-gui-and-links`, `docs-tools:rh-ssg-legal-and-support`, `docs-tools:rh-ssg-accessibility`, `docs-tools:rh-ssg-release-notes` (if applicable)
 
 **MkDocs review skills**: Same as AsciiDoc but omits `docs-review-modular-docs` (AsciiDoc-specific) and `rh-ssg-release-notes`.
 
@@ -601,7 +601,7 @@ The `confirm` gate on `integrate-execute` (defined in the YAML) reads the plan f
 
 **Step-by-step logic**:
 
-1. **Check for existing link** — Fetch parent ticket's issuelinks via JIRA REST API. If a "Document" link with inwardIssue already exists, mark completed (no duplicate).
+1. **Check for existing link** — Fetch parent ticket's issuelinks via JIRA REST API. If a "Document" link with inwardIssue already exists, return immediately (no duplicate — the orchestrator marks the step completed).
 2. **Check project visibility** — Unauthenticated curl to `/rest/api/2/project/<PROJECT>`. HTTP 200 = public (do NOT attach detailed plan). Other = private (attach plan).
 3. **Extract description** — Read the planning step output and extract 3 sections: main JTBD, JTBD relation, and information sources. Append footer with date and AI attribution.
 4. **Convert to JIRA wiki markup** — Python inline script handles headings, bold, code, links, tables, numbered lists, horizontal rules.
@@ -756,15 +756,21 @@ Loop:
   ### 5e: Handle iteration (if step has `iterate`)
   After skill returns:
     1. Increment iteration counter in state
-    2. Read iterate.check.file (resolved)
-    3. Extract value using iterate.check.pattern (regex)
-    4. If extracted value == iterate.check.done_when →
-       proceed to 5f (verify output and mark completed)
-    5. If iterations < iterate.max:
-       - Invoke iterate.fix.skill with resolved iterate.fix.args
-       - Go back to 5d (re-dispatch the main skill)
-    6. If iterations >= iterate.max →
-       proceed to 5f with warning that manual review is recommended
+
+    If iterate has `check` and `fix` (longhand with convergence):
+      2. Read iterate.check.file (resolved)
+      3. Extract value using iterate.check.pattern (regex)
+      4. If extracted value == iterate.check.done_when →
+         proceed to 5f (verify output and mark completed)
+      5. If iterations < iterate.max:
+         - Invoke iterate.fix.skill with resolved iterate.fix.args
+         - Go back to 5d (re-dispatch the main skill)
+      6. If iterations >= iterate.max →
+         proceed to 5f with warning that manual review is recommended
+
+    If iterate is shorthand (max only, no check/fix):
+      2. If iterations < iterate.max → go back to 5d (re-dispatch)
+      3. If iterations >= iterate.max → proceed to 5f
 
   ### 5f: Verify output (if step has `output`)
   If step.output is not null:
@@ -1018,7 +1024,7 @@ The orchestrator validates the YAML before execution:
 1. **Step names must be unique** — no duplicate names within a workflow
 2. **Step references must be valid** — `{steps.<name>.output}` must reference a step that appears earlier in the list
 3. **Required params must not have defaults** — if `required: true`, `default` is ignored
-4. **Iterate requires check and fix** — if `iterate` is specified, both `check` and `fix` must be present
+4. **Iterate longhand requires check and fix** — if `iterate` is specified as an object (longhand), both `check` and `fix` must be present. The shorthand `iterate: <int>` runs the step unconditionally N times without convergence checking
 5. **Confirm show_file must be resolvable** — if `confirm.show_file` references a step output, that step must appear earlier
 6. **Condition expressions must be valid** — only `==` and `!=` operators, right-hand side must be a literal
 
