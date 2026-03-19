@@ -348,7 +348,7 @@ plugins/docs-tools/skills/
 
 The `defaults/docs-orchestrator.yaml` file is the source of truth for the default workflow. On first run, if no `.claude/docs-orchestrator.yaml` exists in the user's repo, the orchestrator copies this file to `.claude/docs-orchestrator.yaml`.
 
-### Step skills (from previous spec, unchanged)
+### Step skills
 
 ```
 plugins/docs-tools/skills/
@@ -367,6 +367,248 @@ plugins/docs-tools/skills/
   docs-workflow-create-jira/
     docs-workflow-create-jira.md
 ```
+
+Each step skill follows the step skill contract (see "Step Skill Contract" section): parse args, do work, write output. Under `docs-orchestrator`, step skills do **not** manage state — the orchestrator handles all state transitions. The agent definitions in `agents/*.md` remain unchanged.
+
+#### `docs-workflow-requirements`
+
+**Agent**: `docs-tools:requirements-analyst`
+
+**Output**: `requirements/requirements_{ticket|safe}_{timestamp}.md`
+
+**Prompt**:
+
+> Analyze documentation requirements for JIRA ticket `<TICKET>`.
+>
+> Manually-provided PR/MR URLs to include in analysis (merge with any auto-discovered URLs, dedup):
+> - `<PR_URL_1>`
+> - `<PR_URL_2>`
+>
+> Save your complete analysis to: `<OUTPUT_FILE>`
+>
+> Follow your standard analysis methodology (JIRA fetch, ticket graph traversal, PR/MR analysis, web search expansion). Format the output as structured markdown for the next stage.
+
+The PR URL bullet list is conditional — included only if PR URLs are provided.
+
+**Output verification fallback**: Search `.claude/docs/requirements/*<safe_ticket>*.md` for most recent match.
+
+#### `docs-workflow-planning`
+
+**Agent**: `docs-tools:docs-planner`
+
+**Output**: `plans/plan_{ticket|safe}_{timestamp}.md`
+
+**Inputs**: Previous step output (`{steps.requirements.output}`)
+
+**Prompt**:
+
+> Create a comprehensive documentation plan based on the requirements analysis.
+>
+> Read the requirements from: `<PREV_OUTPUT>`
+>
+> The plan must include:
+> 1. Gap analysis (existing vs needed documentation)
+> 2. Module specifications (type, title, audience, content points, prerequisites, dependencies)
+> 3. Implementation order based on dependencies
+> 4. Assembly structure (how modules group together)
+> 5. Content sources from JIRA and PR/MR analysis
+>
+> Save the complete plan to: `<OUTPUT_FILE>`
+>
+> Use structured markdown with clear sections for each module.
+
+#### `docs-workflow-writing`
+
+**Agent**: `docs-tools:docs-writer`
+
+**Output**: `drafts/{ticket|lower}/_index.md`
+
+**Inputs**: Previous step output (`{steps.planning.output}`), format param
+
+**Output directory structure (AsciiDoc, default)**:
+
+```
+.claude/docs/drafts/<ticket>/
+  _index.md
+  assembly_<name>.adoc
+  modules/
+    <concept>.adoc
+    <procedure>.adoc
+    <reference>.adoc
+```
+
+**Output directory structure (MkDocs, `format == mkdocs`)**:
+
+```
+.claude/docs/drafts/<ticket>/
+  _index.md
+  mkdocs-nav.yml
+  docs/
+    <concept>.md
+    <procedure>.md
+    <reference>.md
+```
+
+**Prompt (AsciiDoc)**:
+
+> Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
+>
+> Read the plan from: `<PREV_OUTPUT>`
+>
+> **IMPORTANT**: Write COMPLETE .adoc files, not summaries or outlines.
+>
+> Output folder structure:
+> ```
+> <DRAFTS_DIR>/
+> +-- _index.md
+> +-- assembly_<name>.adoc
+> +-- modules/
+>     +-- <concept-name>.adoc
+>     +-- <procedure-name>.adoc
+>     +-- <reference-name>.adoc
+> ```
+>
+> Save modules to: `<MODULES_DIR>/`
+> Save assemblies to: `<DRAFTS_DIR>/`
+> Create index at: `<DRAFTS_DIR>/_index.md`
+
+**Prompt (MkDocs)**:
+
+> Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
+>
+> Read the plan from: `<PREV_OUTPUT>`
+>
+> **IMPORTANT**: Write COMPLETE .md files with YAML frontmatter (title, description), not summaries or outlines. Use Material for MkDocs conventions: admonitions, content tabs, code blocks with titles, and proper heading hierarchy starting at `# h1`.
+>
+> Output folder structure:
+> ```
+> <DRAFTS_DIR>/
+> +-- _index.md
+> +-- mkdocs-nav.yml
+> +-- docs/
+>     +-- <concept-name>.md
+>     +-- <procedure-name>.md
+>     +-- <reference-name>.md
+> ```
+>
+> Save pages to: `<DOCS_DIR>/`
+> Create nav fragment at: `<DRAFTS_DIR>/mkdocs-nav.yml`
+> Create index at: `<DRAFTS_DIR>/_index.md`
+
+**Output verification**: Check that `_index.md` exists at the output path. The `_index.md` serves as the manifest for the entire drafts directory.
+
+#### `docs-workflow-tech-review`
+
+**Agent (reviewer)**: `docs-tools:technical-reviewer`
+**Agent (fix)**: `docs-tools:docs-writer`
+
+**Output**: `drafts/{ticket|lower}/_technical_review.md`
+
+This is the most complex step skill because the orchestrator drives its review-fix iteration loop via the `iterate` block in the YAML.
+
+**Reviewer prompt**:
+
+> Perform a technical review of the documentation drafts for ticket `<TICKET>`.
+> Source drafts location: `<DRAFTS_DIR>/`
+> Review all .adoc and .md files. Follow your standard review methodology.
+> Save your review report to: `<TECH_REVIEW_FILE>`
+
+**Fix prompt** (dispatched by the orchestrator between iterations):
+
+> The technical reviewer found issues in the documentation for ticket `<TICKET>`.
+> Read the technical review report at: `<TECH_REVIEW_FILE>`
+> Address all Critical issues and Significant issues.
+> Edit draft files in place at `<DRAFTS_DIR>/`.
+> Do NOT address minor issues or style concerns.
+
+**Iteration**: The orchestrator checks the output file for `Overall technical confidence: (HIGH|MEDIUM|LOW)`. Iteration stops on `HIGH` or after 3 attempts.
+
+**Note on `subagent_type`**: Throughout this spec, agent references (e.g., `docs-tools:technical-reviewer`) refer to agent definitions in `agents/*.md`, not skills. This matches the Claude Code Agent tool convention where `subagent_type` loads agent markdown files as the subagent's system instructions.
+
+#### `docs-workflow-style-review`
+
+**Agent**: `docs-tools:docs-reviewer`
+
+**Output**: `drafts/{ticket|lower}/_review_report.md`
+
+**Inputs**: Format param determines which review skills to include
+
+**AsciiDoc review skills**:
+
+- Vale linting: `vale-tools:lint-with-vale`
+- Red Hat docs: `docs-tools:docs-review-modular-docs`, `docs-tools:docs-review-content-quality`
+- IBM Style Guide: `ibm-sg-audience-and-medium`, `ibm-sg-language-and-grammar`, `ibm-sg-punctuation`, `ibm-sg-numbers-and-measurement`, `ibm-sg-structure-and-format`, `ibm-sg-references`, `ibm-sg-technical-elements`, `ibm-sg-legal-information`
+- Red Hat SSG: `rh-ssg-grammar-and-language`, `rh-ssg-formatting`, `rh-ssg-structure`, `rh-ssg-technical-examples`, `rh-ssg-gui-and-links`, `rh-ssg-legal-and-support`, `rh-ssg-accessibility`, `rh-ssg-release-notes` (if applicable)
+
+**MkDocs review skills**: Same as AsciiDoc but omits `docs-review-modular-docs` (AsciiDoc-specific) and `rh-ssg-release-notes`.
+
+**Prompt**:
+
+> Review the [AsciiDoc|MkDocs Markdown] documentation drafts for ticket `<TICKET>`.
+>
+> Source drafts location: `<DRAFTS_DIR>/`
+>
+> **Edit files in place** in the drafts folder. Do NOT create copies.
+>
+> For each file:
+> 1. Run Vale linting once
+> 2. Fix obvious errors where the fix is clear and unambiguous
+> 3. Run documentation review skills: [skill list based on format]
+> 4. Skip ambiguous issues that require broader context
+>
+> Save the review report to: `<DRAFTS_DIR>/_review_report.md`
+>
+> The report must include:
+> - Summary of files reviewed
+> - Vale linting results (errors, warnings, suggestions)
+> - Issues found by each review skill (with file:line references)
+> - Fixes applied
+> - Remaining issues requiring manual review
+
+#### `docs-workflow-integrate`
+
+**Agent**: `docs-tools:docs-integrator`
+
+**Output (plan)**: `drafts/{ticket|lower}/_integration_plan.md`
+**Output (execute)**: `drafts/{ticket|lower}/_integration_report.md`
+
+Under `docs-orchestrator`, integration is expressed as **two separate steps** in the YAML (`integrate-plan` and `integrate-execute`) rather than a single skill with a phase state machine. The orchestrator handles the confirm gate between them. Each step is a single agent dispatch:
+
+**Plan prompt**:
+
+> Phase: PLAN
+> Plan the integration of documentation drafts for ticket `<TICKET>`.
+> Drafts location: `<DRAFTS_DIR>/`
+> Save the integration plan to: `<INTEGRATION_PLAN_FILE>`
+
+**Execute prompt**:
+
+> Phase: EXECUTE
+> Execute the integration plan for ticket `<TICKET>`.
+> Drafts location: `<DRAFTS_DIR>/`
+> Integration plan: `<INTEGRATION_PLAN_FILE>`
+> Save the integration report to: `<INTEGRATION_REPORT_FILE>`
+
+The `confirm` gate on `integrate-execute` (defined in the YAML) reads the plan file and asks the user before proceeding. If declined, the step is marked complete with the plan saved for manual reference.
+
+#### `docs-workflow-create-jira`
+
+**No agent dispatch** — uses direct Bash/curl/Python for JIRA REST API calls.
+
+**Output**: `null` (produces a JIRA URL, not a file)
+
+**Inputs**: `create_jira_project` param (target JIRA project key), planning step output (documentation plan to extract description)
+
+**Step-by-step logic**:
+
+1. **Check for existing link** — Fetch parent ticket's issuelinks via JIRA REST API. If a "Document" link with inwardIssue already exists, mark completed (no duplicate).
+2. **Check project visibility** — Unauthenticated curl to `/rest/api/2/project/<PROJECT>`. HTTP 200 = public (do NOT attach detailed plan). Other = private (attach plan).
+3. **Extract description** — Read the planning step output and extract 3 sections: main JTBD, JTBD relation, and information sources. Append footer with date and AI attribution.
+4. **Convert to JIRA wiki markup** — Python inline script handles headings, bold, code, links, tables, numbered lists, horizontal rules.
+5. **Create JIRA ticket** — POST to `/rest/api/2/issue`. Summary: `[ccs] Docs - <parent_summary>`. Issue type: Story. Component: Documentation.
+6. **Link to parent ticket** — POST to `/rest/api/2/issueLink`. Type: "Document" (singular). outwardIssue: parent (shows "documents"), inwardIssue: new ticket (shows "is documented by").
+7. **Attach docs plan** — Private projects only. POST to `/rest/api/2/issue/<NEW_KEY>/attachments` with plan file.
+8. **Return** — The orchestrator records completion. The JIRA URL is reported to the user but not written to a file (`output: null`).
 
 ### User-created files (per team/repo)
 
