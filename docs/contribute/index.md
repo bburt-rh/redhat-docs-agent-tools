@@ -8,6 +8,8 @@ This repository is a collection of plugins for Red Hat documentation workflows. 
 
 For the full contributor guide, see [CONTRIBUTING.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CONTRIBUTING.md).
 
+If you use **Cursor**, read [Cursor workflows](cursor-workflows.md) for how project rules, skills, and testing align with Claude Code in this repository.
+
 ## Key principles
 
 ### Extend, don't duplicate

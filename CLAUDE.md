@@ -77,3 +77,7 @@ Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 - Use the hello-world plugin as a reference implementation
 - Use `.work/` directory for temporary files (gitignored)
 - When referencing Python in install steps or prerequisites, always refer to `python3`. Use `python3 -m pip install` instead of `pip install`
+
+## Cursor users
+
+For Cursor-specific instructions (including workspace-relative script paths), see [AGENTS.md](AGENTS.md) and [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).

@@ -4,6 +4,17 @@ This repository is a collection of plugins, skills, agents, and commands for Red
 
 This guide helps you contribute effectively and helps maintainers review efficiently.
 
+## Cursor users
+
+This repository includes Cursor-oriented project instructions and rules so you can follow the same conventions as Claude Code contributors:
+
+- **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md): skill naming, script paths from the workspace root, and contributing rules
+- **[docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md)** — How skills, commands, agents, and evals map (or do not map) to Cursor; how to test and submit changes
+
+**Script paths:** Documentation for Claude Code often uses `${CLAUDE_PLUGIN_ROOT}` for scripts in other skills. In Cursor, use paths relative to the repository root (for example, `plugins/<plugin>/skills/<skill>/scripts/...`). See AGENTS.md for examples.
+
+**Evals:** The eval runner described in [Evaluating skills](docs/contribute/evaluating-skills.md) is a Claude Code tool. If you use Cursor, keep `evals/evals.json` accurate and explain in your pull request how reviewers can verify behavior manually.
+
 ## Before you contribute
 
 ### Check for existing capabilities

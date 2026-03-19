@@ -4,7 +4,7 @@ icon: lucide/home
 
 # Red Hat Docs Agent Tools
 
-A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows.
+A collection of plugins, skills, and agent tools for Red Hat documentation workflows. Install and use them with Claude Code, or open this repository in Cursor and follow [Cursor workflows](contribute/cursor-workflows.md).
 
 ## Explore
 

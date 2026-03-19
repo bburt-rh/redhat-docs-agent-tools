@@ -1,6 +1,6 @@
 # Red Hat Docs Agent Tools
 
-A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows.
+A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows. Cursor users can follow the same Markdown conventions using [AGENTS.md](AGENTS.md) and [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
 
 ## Quick start
 
@@ -50,13 +50,17 @@ make update
 ├── .github/workflows/     # CI: docs build + deploy on merge to main
 ├── .claude-plugin/        # Plugin marketplace configuration
 ├── docs/                  # Zensical site source (Markdown)
-├── plugins/               # Plugin implementations
+├── plugins/               # Plugin implementations (see plugin catalog for the full list)
+│   ├── dita-tools/        # DITA and AsciiDoc conversion tools
 │   ├── docs-tools/        # Documentation review, writing, and workflow tools
 │   ├── hello-world/       # Reference plugin
+│   ├── jtbd-tools/        # Jobs-to-be-done and research-oriented tools
 │   └── vale-tools/        # Vale linting tools
 ├── scripts/               # Doc generation scripts
 ├── zensical.toml          # Zensical site config
 ├── Makefile               # Build automation
+├── AGENTS.md              # Cursor project instructions (mirrors CLAUDE.md conventions)
+├── .cursor/rules/         # Cursor rules for this repository
 ├── CLAUDE.md              # Claude Code project config
 ├── CONTRIBUTING.md        # Contribution guidelines
 └── LICENSE                # Apache-2.0
@@ -64,7 +68,7 @@ make update
 
 ## Contributing
 
-Contributions are welcome from anyone using any editor or AI coding tool. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on creating plugins and submitting changes.
+Contributions are welcome from anyone using any editor or AI coding tool (including Cursor). See [CONTRIBUTING.md](CONTRIBUTING.md) and, for Cursor-specific workflows, [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
 
 ## License
 
