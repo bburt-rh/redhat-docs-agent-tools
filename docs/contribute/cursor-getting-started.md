@@ -18,8 +18,6 @@ Use the following checklist as a fast path; the sections below explain each step
 1. Attach **`AGENTS.md`** before you ask for substantive edits. See [Load project instructions](#load-project-instructions).
 1. Try a [minimal workflow](#try-a-minimal-workflow), optionally [invoke a more complex workflow](#invoke-a-more-complex-workflow), then [preview the documentation site](#preview-the-documentation-site) and review [Next steps for contributors](#next-steps-for-contributors).
 
-A [Suggested path](#suggested-path-for-a-new-contributor) diagram at the end of the page summarizes the same flow.
-
 ## Terms you will see
 
 The following terms appear often in Cursor and in the repository documentation.
@@ -249,26 +247,6 @@ See the [README.md](https://github.com/redhat-documentation/redhat-docs-agent-to
 
 1. Read [Cursor workflows](cursor-workflows.md) for repository-specific behavior and parity with Claude Code.
 1. Follow [CONTRIBUTING.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/CONTRIBUTING.md) for branches, `plugin.json`, marketplace sync, and pull requests.
-
-## Suggested path for a new contributor
-
-The diagram summarizes the path described on the page. Read the sections **above** in order; procedural detail begins with [Prerequisites](#prerequisites).
-
-```mermaid
-flowchart TD
-  newbie[New contributor]
-  prereq[Prerequisites Cursor Git python3]
-  workspace[Open repo root as workspace]
-  orient[Orient UI modes and model]
-  loadRules[Load AGENTS.md]
-  minimal[Try minimal workflow]
-  complex[Invoke complex workflow]
-  site[make update and make serve]
-  nextSteps[CONTRIBUTING and cursor workflows]
-  tips[Tips and troubleshooting]
-  newbie --> prereq --> workspace --> orient --> loadRules --> minimal --> complex --> site --> nextSteps
-  nextSteps -.-> tips
-```
 
 ## Tips and troubleshooting
 
