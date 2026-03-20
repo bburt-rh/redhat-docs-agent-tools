@@ -1,6 +1,6 @@
 # Red Hat Docs Agent Tools
 
-A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows. Cursor users can follow the same Markdown conventions using [AGENTS.md](AGENTS.md) and [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
+A collection of Claude Code plugins, skills, and agent tools for Red Hat documentation workflows. Cursor users can start with [Get Started with Cursor](docs/get-started/index.md), then use [AGENTS.md](AGENTS.md) and [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
 
 ## Quick start
 
@@ -25,7 +25,9 @@ Run `make update` to generate the plugin catalog locally, or browse the [live si
 
 The documentation site is built with [Zensical](https://zensical.org/) and auto-deployed to GitHub Pages on every merge to main.
 
-**Live site:** https://redhat-documentation.github.io/redhat-docs-agent-tools/
+### Live site
+
+[Published documentation](https://redhat-documentation.github.io/redhat-docs-agent-tools/)
 
 ### Local development
 
@@ -45,7 +47,7 @@ make update
 
 ## Repository structure
 
-```
+```text
 .
 ├── .github/workflows/     # CI: docs build + deploy on merge to main
 ├── .claude-plugin/        # Plugin marketplace configuration

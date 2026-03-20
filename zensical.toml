@@ -24,8 +24,14 @@ nav = [
         {"Contributing" = "contribute/index.md"},
         {"Creating a new plugin" = "contribute/creating-a-new-plugin.md"},
         {"Evaluating skills" = "contribute/evaluating-skills.md"},
-        {"Getting started with Cursor" = "contribute/cursor-getting-started.md"},
+        {"Contributing with Cursor" = "contribute/cursor-contributing-tools.md"},
         {"Cursor workflows" = "contribute/cursor-workflows.md"},
+    ]},
+    {"Get Started with Cursor" = [
+        {"Overview" = "get-started/index.md"},
+        {"Getting started with Cursor" = "get-started/cursor-getting-started.md"},
+        {"Cursor fundamentals" = "get-started/cursor-fundamentals.md"},
+        {"Using Cursor with your documentation" = "get-started/cursor-product-documentation.md"},
     ]},
 ]
 
