@@ -19,6 +19,7 @@ Usage:
 Exit codes:
     0 - No violations found
     1 - Violations found
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse
@@ -168,15 +169,24 @@ def is_list_item(line):
 
 
 def is_definition_list(line):
-    """Check if a line is a definition list entry (term:: description)."""
+    """Check if a line is a definition list entry (term:: description).
+
+    Matches patterns like:
+    - ``term``:: description
+    - Term:: description
+    - lowercase_term:: description
+    Excludes AsciiDoc directives (include::, image::, ifdef::, etc.).
+    """
     s = line.strip()
-    # Match: `term`:: or term:: patterns
     if re.search(r'::\s*$', s) or re.search(r'::\s+\S', s):
-        # But not include:: or image:: etc.
-        if not re.match(r'^\w+::', s) or re.match(r'^[A-Z]', s):
+        # Exclude AsciiDoc directives (include::, image::, ifdef::, etc.)
+        if re.match(r'^(include|image|ifdef|ifndef|endif|ifeval)::', s):
+            return False
+        # Match backtick-quoted terms, uppercase terms, or any non-directive term
+        if s.startswith("`") or re.match(r'^[A-Z]', s):
             return True
-        # Definition lists with backtick terms
-        if s.startswith("`"):
+        # Also match lowercase definition list terms (e.g., "storage::")
+        if re.match(r'^[a-z]', s):
             return True
     return False
 
@@ -186,8 +196,8 @@ def is_link_only_item(line):
     s = line.strip()
     # Remove list marker
     content = re.sub(r'^\*{1,3}\s+', '', s)
-    # Check if remaining content is just a link or xref
-    if re.match(r'^(xref:|link:|<<)', content):
+    # Check if remaining content is entirely a link or xref
+    if re.match(r'^(xref:|link:|<<)[^\s]*\[[^\]]*\]\s*$', content):
         return True
     return False
 

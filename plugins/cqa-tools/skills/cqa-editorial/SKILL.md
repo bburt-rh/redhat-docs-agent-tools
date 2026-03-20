@@ -361,13 +361,13 @@ The simple words script checks for phrasal verbs ("make sure", "set up", "find o
 
 #### Conversational level
 
-Dev Spaces documentation is enterprise product documentation for experienced administrators and developers. Per IBM Style, this falls under **"less conversational"** — professional, direct, second-person, no contractions.
+Red Hat product documentation is enterprise documentation for experienced administrators and developers. Per IBM Style, this typically falls under **"less conversational"** — professional, direct, second-person, no contractions. Determine the appropriate level based on the product's target audience.
 
 | Level | Audience | Example |
 |-------|----------|---------|
 | Most conversational | Marketing, "try and buy" | "Build your dream app." |
 | Fairly conversational | New users, getting started | "In minutes, you can set dates and dive in." |
-| **Less conversational** | **Experienced users (Dev Spaces)** | **"Configure OAuth to allow users to interact with Git repositories."** |
+| **Less conversational** | **Experienced users (typical RH product docs)** | **"Configure OAuth to allow users to interact with Git repositories."** |
 | Least conversational | API docs, expert audience | "The SObject rows resource retrieves field values." |
 
 #### Tone rules

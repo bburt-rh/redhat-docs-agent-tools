@@ -16,6 +16,7 @@ Usage:
 Exit codes:
     0 - No issues found
     1 - Issues found
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse
@@ -129,7 +130,7 @@ def check_file(filepath, rel_path, filename):
 
     # 2. Check :_mod-docs-content-type: attribute
     declared_type = None
-    for i, line in enumerate(lines):
+    for line in lines:
         m = re.match(r'^:_mod-docs-content-type:\s*(\S+)', line)
         if m:
             declared_type = m.group(1).upper()
@@ -199,7 +200,7 @@ def check_file(filepath, rel_path, filename):
             if i in code_lines:
                 continue
             stripped = line.strip()
-            if stripped.startswith("== ") and not stripped.startswith("=== "):
+            if stripped.startswith("== "):
                 issues.append({
                     "file": rel_path,
                     "check": "PROC_SUBSECTION",

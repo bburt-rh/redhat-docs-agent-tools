@@ -173,7 +173,7 @@ def extract_urls(filepath, rel_path):
                     "file": rel_path,
                     "line_num": line_idx + 1,
                 })
-            except Exception:
+            except ValueError:
                 pass
 
     return urls

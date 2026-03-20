@@ -15,6 +15,7 @@ Usage:
 Exit codes:
     0 - All checks pass
     1 - Issues found
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse
@@ -71,7 +72,7 @@ def check_docinfo(title_dir, title_name):
     if year_match:
         return True, True, int(year_match.group(1)), docinfo_path
 
-    # Year range: 2020-2024
+    # Year range: 2020-2024 (matches both hyphen-minus '-' and EN DASH '–')
     year_match = re.search(r'(\d{4})\s*[-–]\s*(\d{4})', content)
     if year_match:
         return True, True, int(year_match.group(2)), docinfo_path
@@ -116,7 +117,7 @@ def main():
         print(f"   FOUND: {name}")
         # Check if it's non-empty
         if os.path.getsize(path) == 0:
-            print(f"   WARNING: File is empty")
+            print("   WARNING: File is empty")
             issues.append(f"License file {name} is empty")
     else:
         print("   MISSING: No LICENSE or LICENCE file found at repo root")

@@ -56,10 +56,14 @@ For each tab (Pre-migration, Quality, Onboarding), create a table:
 
 ### Rating thresholds
 
+Individual parameters are scored as integers (4, 3, 2, or 1). The **average score** across all parameters in a tab determines the tab's overall rating:
+
 - 3.5+ = "Meets criteria"
 - 3.0-3.4 = "Mostly meets"
 - 2.5-2.9 = "Mostly does not meet"
 - Below 2.5 = "Does not meet"
+
+The overall assessment rating uses the same thresholds applied to the average across all 54 parameters.
 
 ### Issues list
 

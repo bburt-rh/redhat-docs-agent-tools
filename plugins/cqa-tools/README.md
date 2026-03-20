@@ -2,7 +2,7 @@
 
 Assess, fix, and score Red Hat modular documentation against all 54 CQA 2.1 parameters.
 
-```
+```text
                          ┌─────────┐
                          │  Assess  │  Run checks against your docs
                          └────┬─────┘
@@ -72,7 +72,7 @@ Or invoke individual skills:
 | 5 | `cqa-editorial` | P13-P14, Q1-Q5, Q18, Q20 | Scannability, readability, complex words, fluff, tone, style guide |
 | 6 | `cqa-links` | P15-P17, Q24-Q25 | Broken xrefs, missing includes, dead URLs, content journey |
 | 7 | `cqa-legal-branding` | P18-P19, Q17, Q23, O1-O5 | Product names, TP/DP disclaimers, conscious language, legal notices |
-| 8 | `cqa-user-focus` | Q6-Q10 | Persona targeting, acronym expansion, admonition density |
+| 8 | `cqa-user-focus` | Q6-Q11 | Persona targeting, acronym expansion, admonition density |
 | 9 | `cqa-tables-images` | Q19, Q21-Q22 | Screenshots, table captions and headers, image alt text |
 | 10 | `cqa-onboarding` | O6-O10 | Support disclaimers, SME verification, Pantheon publishing |
 | 11 | `cqa-report` | Final | Before-and-after summary report with scores and evidence |

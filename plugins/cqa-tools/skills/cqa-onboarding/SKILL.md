@@ -125,8 +125,8 @@ All source content files must be in AsciiDoc (`.adoc`) format following the Red 
 
 2. **Encoding verification**:
    ```bash
-   # Check for non-UTF-8 files
-   file "$DOCS_REPO/topics/"**/*.adoc | grep -v "UTF-8\|ASCII"
+   # Check for non-UTF-8 files in all content directories
+   file "$DOCS_REPO/topics/"**/*.adoc "$DOCS_REPO/assemblies/"**/*.adoc "$DOCS_REPO/snippets/"**/*.adoc | grep -v "UTF-8\|ASCII"
    ```
    All files must be UTF-8 encoded.
 
@@ -245,15 +245,15 @@ Content must be published to the official Red Hat documentation site (`docs.redh
    - `ccutil` — validates and compiles the assembled content
    - `git_push` — pushes generated Pantheon files back to the branch
 
-3. **Published URL verification**: If you have access, verify the content is accessible at the published URL:
-   - Admin Guide: `https://docs.redhat.com/en/documentation/red_hat_openshift_dev_spaces/{version}/html-single/administration_guide/`
-   - User Guide: `https://docs.redhat.com/en/documentation/red_hat_openshift_dev_spaces/{version}/html-single/user_guide/`
+3. **Published URL verification**: If you have access, verify the content is accessible at the published URL. The URL pattern is:
+   - `https://docs.redhat.com/en/documentation/<product_slug>/<version>/html-single/<guide_name>/`
+   - Replace `<product_slug>`, `<version>`, and `<guide_name>` with the product's actual values.
 
 4. **Version coverage**: Verify that published documentation covers the current supported versions.
 
 5. **Content freshness**: Check that the most recent stage branch reflects the latest content updates:
    ```bash
-   git log --oneline -5 origin/devspaces-X.Y-stage
+   git log --oneline -5 origin/<product>-<X.Y>-stage
    ```
 
 ### Scoring

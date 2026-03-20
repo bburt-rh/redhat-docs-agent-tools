@@ -15,6 +15,7 @@ Usage:
 Exit codes:
     0 - No issues found
     1 - Issues found
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse
@@ -161,7 +162,7 @@ def file_includes_snippet(filepath, snippet_name):
         return False
 
     # Check for direct include of the snippet
-    if f"include::" in content and snippet_name in content:
+    if "include::" in content and snippet_name in content:
         return True
 
     # Check for FeatureName + snippet include pattern
@@ -270,7 +271,7 @@ def main():
     if tp_exists:
         tp_valid, tp_missing = check_snippet_content(tp_path, TP_REQUIRED_PHRASES)
         if tp_valid:
-            print(f"   Content: Valid (all required phrases present)")
+            print("   Content: Valid (all required phrases present)")
         else:
             print(f"   Content: INCOMPLETE — missing: {', '.join(tp_missing)}")
             issues.append(f"{TP_SNIPPET} missing required phrases: {', '.join(tp_missing)}")
@@ -282,7 +283,7 @@ def main():
     if dp_exists:
         dp_valid, dp_missing = check_snippet_content(dp_path, DP_REQUIRED_PHRASES)
         if dp_valid:
-            print(f"   Content: Valid")
+            print("   Content: Valid")
         else:
             print(f"   Content: INCOMPLETE — missing: {', '.join(dp_missing)}")
             issues.append(f"{DP_SNIPPET} missing required phrases: {', '.join(dp_missing)}")
@@ -310,13 +311,13 @@ def main():
     dp_findings = [f for f in all_findings if f["type"] == "DP"]
 
     print(f"   Technology Preview mentions: {len(tp_findings)}")
-    for cls in ["PROSE", "TABLE", "COMMENT", "CODE_BLOCK"]:
+    for cls in ["PROSE", "TABLE", "LINK_TEXT", "COMMENT", "CODE_BLOCK"]:
         count = len([f for f in tp_findings if f["classification"] == cls])
         if count > 0:
             print(f"     {cls}: {count}")
 
     print(f"   Developer Preview mentions: {len(dp_findings)}")
-    for cls in ["PROSE", "TABLE", "COMMENT", "CODE_BLOCK"]:
+    for cls in ["PROSE", "TABLE", "LINK_TEXT", "COMMENT", "CODE_BLOCK"]:
         count = len([f for f in dp_findings if f["classification"] == cls])
         if count > 0:
             print(f"     {cls}: {count}")

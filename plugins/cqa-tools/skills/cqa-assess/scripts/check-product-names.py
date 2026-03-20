@@ -14,6 +14,7 @@ Usage:
 Exit codes:
     0 - No violations found
     1 - Violations found
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse

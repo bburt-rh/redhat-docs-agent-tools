@@ -4,7 +4,7 @@
 
 | Score | Label | Meaning |
 |-------|-------|---------|
-| **4** | Meets criteria | Fully compliant. Zero or near-zero issues. |
+| **4** | Meets criteria | Fully compliant. Zero issues found. |
 | **3** | Mostly meets | Minor issues exist but do not block publishing. |
 | **2** | Mostly does not meet | Significant issues that should be resolved before publishing. |
 | **1** | Does not meet | Critical issues that block publishing. |

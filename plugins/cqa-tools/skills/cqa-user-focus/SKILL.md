@@ -1,10 +1,10 @@
 ---
 name: cqa-user-focus
-description: Use when assessing CQA parameters Q6-Q10 (user focus). Checks persona targeting, pain point coverage, acronym expansion, Additional resources quality, and admonition density.
+description: Use when assessing CQA parameters Q6-Q11 (user focus). Checks persona targeting, pain point coverage, acronym expansion, Additional resources quality, admonition density, and assembly introduction audience targeting.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# CQA Q6-Q10: User Focus
+# CQA Q6-Q11: User Focus
 
 ## Parameters
 
@@ -195,7 +195,7 @@ Admonitions should draw the reader's attention to certain information. Keep admo
 
 ### Q11: Assembly introduction audience targeting
 
-Assembly introductions must take into account the target audience and apply to a specific persona or skill level. The introduction explains what the user accomplishes by working through the assembled modules.
+Assembly introductions must consider the target audience and apply to a specific persona or skill level. The introduction explains what the user accomplishes by working through the assembled modules.
 
 #### What to check
 

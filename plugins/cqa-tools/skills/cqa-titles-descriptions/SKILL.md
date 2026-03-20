@@ -211,7 +211,7 @@ An assembly is task-based if it contains procedure modules.
 
 ### Rule
 
-Assembly introductions must take into account the target audience and apply to a specific persona or skill level. The introduction is the user story reworded.
+Assembly introductions must consider the target audience and apply to a specific persona or skill level. The introduction is the user story reworded.
 
 Reference: https://redhat-documentation.github.io/modular-docs/#assembly-definition
 

@@ -20,6 +20,7 @@ Usage:
 Exit codes:
     0 - Overall grade meets threshold (<=12)
     1 - Overall grade exceeds threshold (>12)
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse
@@ -167,27 +168,39 @@ def is_list_item(line):
     s = line.strip()
     if re.match(r'^\*{1,3}\s', s):
         return True
-    if re.match(r'^\\.{1,3}\s', s):
+    if re.match(r'^\.{1,3}\s', s):
         return True
     return False
 
 
 def is_definition_list(line):
-    """Check if a line is a definition list entry."""
+    """Check if a line is a definition list entry (term:: description).
+
+    Matches patterns like:
+    - ``term``:: description
+    - Term:: description
+    - lowercase_term:: description
+    Excludes AsciiDoc directives (include::, image::, ifdef::, etc.).
+    """
     s = line.strip()
     if re.search(r'::\s*$', s) or re.search(r'::\s+\S', s):
-        if not re.match(r'^\w+::', s) or re.match(r'^[A-Z]', s):
+        # Exclude AsciiDoc directives (include::, image::, ifdef::, etc.)
+        if re.match(r'^(include|image|ifdef|ifndef|endif|ifeval)::', s):
+            return False
+        # Match backtick-quoted terms, uppercase terms, or any non-directive term
+        if s.startswith("`") or re.match(r'^[A-Z]', s):
             return True
-        if s.startswith("`"):
+        # Also match lowercase definition list terms (e.g., "storage::")
+        if re.match(r'^[a-z]', s):
             return True
     return False
 
 
 def is_link_only_item(line):
-    """Check if a list item contains only a link/xref."""
+    """Check if a list item contains only a link/xref (no prose to check)."""
     s = line.strip()
     content = re.sub(r'^\*{1,3}\s+', '', s)
-    if re.match(r'^(xref:|link:|<<)', content):
+    if re.match(r'^(xref:|link:|<<)[^\s]*\[[^\]]*\]\s*$', content):
         return True
     return False
 

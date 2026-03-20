@@ -14,6 +14,7 @@ Usage:
 Exit codes:
     0 - No violations found
     1 - Violations found
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse
@@ -26,7 +27,7 @@ import sys
 EXCLUSIONARY_TERMS = [
     ("slave", ["secondary", "replica", "standby"], False),
     ("whitelist", ["allowlist"], False),
-    ("blacklist", ["denylist"], False),
+    ("blacklist", ["blocklist", "denylist"], False),
     ("dummy", ["placeholder", "example", "sample"], False),
 ]
 
@@ -193,7 +194,7 @@ def check_file(filepath, rel_path):
         # Check "master" with special handling
         term, replacements, case_sensitive = MASTER_TERM
         for pos, matched_text in find_term_occurrences(line, term, case_sensitive):
-            classification, detail = classify_term_match(
+            classification, _ = classify_term_match(
                 line, pos, pos + len(matched_text), term
             )
             findings.append({
@@ -208,7 +209,7 @@ def check_file(filepath, rel_path):
         # Check other exclusionary terms
         for term, replacements, case_sensitive in EXCLUSIONARY_TERMS:
             for pos, matched_text in find_term_occurrences(line, term, case_sensitive):
-                classification, detail = classify_term_match(
+                classification, _ = classify_term_match(
                     line, pos, pos + len(matched_text), term
                 )
                 findings.append({

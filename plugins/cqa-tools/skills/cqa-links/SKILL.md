@@ -28,7 +28,7 @@ Every cross-reference, include directive, and image reference must resolve to an
 
 ### Check procedure
 
-Run the reference validation script:
+Run the docs repo's own reference validation script (this is not a plugin script — it lives in the docs repo at `$DOCS_REPO/scripts/validate-refs.py`):
 ```bash
 cd "$DOCS_REPO"
 python3 scripts/validate-refs.py
