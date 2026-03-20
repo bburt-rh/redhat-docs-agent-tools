@@ -1,6 +1,6 @@
 ---
-
-## icon: lucide/list-tree
+icon: lucide/list-tree
+---
 
 # Cursor skill index
 
