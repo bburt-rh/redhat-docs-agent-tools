@@ -67,7 +67,7 @@ Do NOT use old slash-command syntax (e.g., `/jira-reader --issue PROJ-123`).
 |---|---|---|
 | `python3 scripts/...` | Calling a co-located script from within the same skill | `scripts/git_pr_reader.py`, `scripts/callouts.rb` |
 | `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Cross-skill/command script calls | `git_pr_reader.py info`, `jira_reader.py`, `callouts.rb` |
-| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `rh-ssg-formatting`, `ibm-sg-punctuation`, review skills |
+| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the LLM applies | `docs-tools:rh-ssg-formatting`, `docs-tools:ibm-sg-punctuation` |
 
 ## Contributing rules
 
@@ -154,3 +154,7 @@ All paths in plugin.json must be relative and start with `./`. Plugins cannot re
 For the marketplace schema (required fields, plugin entry format, source types), consult https://code.claude.com/docs/en/plugin-marketplaces.md
 
 Version management: use semver (`MAJOR.MINOR.PATCH`) in `plugin.json` only — do not set version in `marketplace.json`. If version is unchanged, users will not receive updates due to caching.
+
+## Cursor users
+
+For Cursor-specific instructions (including workspace-relative script paths), see [AGENTS.md](AGENTS.md) and [docs/contribute/cursor-workflows.md](docs/contribute/cursor-workflows.md).
