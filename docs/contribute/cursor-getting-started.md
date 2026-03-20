@@ -4,36 +4,45 @@ icon: lucide/book-open
 
 # Getting started with Cursor
 
-Use the following sections if you are new to Cursor or to agent-style workflows in an editor. The page explains basic ideas first, then concrete steps to open the repository and try a small task and then a more complex task.
+Use the following sections if you are new to Cursor or to agent-style workflows in an editor. The page introduces concepts (for example modes, `AGENTS.md`, and fully qualified skill names), then gives procedural steps for **two** setups: **contributing** to the Red Hat Docs Agent Tools repository itself, or **using skills from that repository** while you edit AsciiDoc or Markdown in a separate documentation project (multi-root workspace). [Start here](#start-here) collects both paths in one checklist.
 
 **Claude Code and parity:** The plugins in the repository also target **Claude Code**, a separate product. If you only use Cursor, you can treat Claude Code as background until you need the detail in [Cursor workflows](cursor-workflows.md) (skills, commands, and parity with Claude Code).
 
 ## Start here
 
-Use the following checklist as a fast path; the sections below explain each step.
+Use the following checklist as a fast path. More detailed information follows.
 
-1. Install Cursor, Git, and `python3` for the docs build. See [Prerequisites](#prerequisites).
-1. Clone the repository and open the **repository root** folder in Cursor. See [Open the repository as the workspace](#open-the-repository-as-the-workspace).
-1. Open the **Agent** panel, pick a **mode** and **model**, then type a message. See [Orient yourself in the UI](#orient-yourself-in-the-ui).
-1. Attach **`AGENTS.md`** before you ask for substantive edits. See [Load project instructions](#load-project-instructions).
-1. Try a [minimal workflow](#try-a-minimal-workflow), optionally [invoke a more complex workflow](#invoke-a-more-complex-workflow), then [preview the documentation site](#preview-the-documentation-site) and review [Next steps for contributors](#next-steps-for-contributors).
+**Two goals**
 
-## Terms you will see
+1. **Contribute to Red Hat Docs Agent Tools** — You work in a clone of the Red Hat Docs Agent Tools repository (skills, plugins, generated docs site under `docs/`) so that you can contribute new or revised code.
+1. **Edit your product documentation by using skills from the Red Hat Docs Agent Tools repository** — You work on AsciiDoc or Markdown files for the product documentation that is located in another Git repository. To do so, add a second folder to your workspace, attach `AGENTS.md` and a `SKILL.md` from the Tools clone, and name the skill as `plugin:skill`. See [Example: Use a skill in a documentation repository](#example-use-a-skill-in-a-documentation-repository).
 
-The following terms appear often in Cursor and in the repository documentation.
+**Checklist**
 
-- **Workspace** — The folder Cursor has open as the project. In the following instructions, the workspace should be the **repository root** (the clone folder that contains `AGENTS.md` and `plugins/`).
-- **`plugin:skill`** — The fully qualified name of a skill (for example `docs-tools:jira-reader`). The repository requires that form everywhere; see [Skills and fully qualified names](#skills-and-fully-qualified-names).
+1. Install Cursor, Git, and `python3` when you need `make` or Zensical for the Tools site. See [Prerequisites](#prerequisites).
+1. **Set up your workspace.** For work **only** in the Tools repo: clone and open the [repository root](#open-the-repository-as-the-workspace). For **your docs repo plus** skills from the Tools clone: clone both repositories and follow the **Recommended layout: multi-root workspace** steps under [Example: Use a skill in a documentation repository](#example-use-a-skill-in-a-documentation-repository).
+1. Open Cursor, and then open the **Agent** panel, pick a **mode** and **model**, then type a message. See [Orient yourself in the UI](#orient-yourself-in-the-ui).
+1. Attach **`AGENTS.md`** from the **redhat-docs-agent-tools** tree before substantive edits (in a single-repo or multi-root setup). See [Load project instructions](#load-project-instructions).
+1. **If you contribute here:** try a [minimal workflow](#try-a-minimal-workflow), optionally [invoke a more complex workflow](#invoke-a-more-complex-workflow), then [preview the documentation site](#preview-the-documentation-site) when you change the published site.
+1. **If you edit files in another docs repo:** attach the desired `SKILL.md`, scope paths under your docs root, and use a `plugin:skill` in the prompt. See the example prompt under [Example: Use a skill in a documentation repository](#example-use-a-skill-in-a-documentation-repository). Browse names in the [Cursor skill index](../cursor-skills-index.md).
+1. If want to open a pull request against the Tools repo, follow [Next steps for contributors](#next-steps-for-contributors). If something fails, see [Tips and troubleshooting](#tips-and-troubleshooting).
+
+## Terminology
+
+The following terms appear often in Cursor and in the repository documentation. The list is not exhaustive. It highlights terms you will see in the steps below.
+
+- **workspace** — The folder Cursor has open as the project. In the following instructions, the workspace should be the **repository root** (the clone folder that contains `AGENTS.md` and `plugins/`).
+- **`plugin:skill`** — The fully qualified name of a skill (for example `docs-tools:jira-reader`). The repository requires that form everywhere. See [Skills and fully qualified names](#skills-and-fully-qualified-names) for more information.
 - **`@` mention** — Typing `@` in the chat or Agent input to attach a file or symbol to the message so the model includes it in context.
-- **Agent panel** — The Cursor UI area for chat and Agent tasks (shortcut **Cmd+I** / **Ctrl+I**). An **agent file** under `plugins/<plugin>/agents/` is unrelated Markdown (a persona); do not confuse the two.
-- **Frontier model** — The AI model selected for a request (for example from the model dropdown). **Context window** is how much text the model can consider at once; **Max Mode** uses a larger window when your plan allows it.
+- **Agent panel** — The Cursor UI area for chat and Agent tasks (shortcut **Cmd+I** / **Ctrl+I**). An **agent file** under `plugins/<plugin>/agents/` is unrelated Markdown. Do not confuse the two.
+- **model** — The AI model selected for a request from the model dropdown list. **Context window** is how much text the model can consider at once. **Max Mode** uses a larger context window when your plan allows it.
 - **Claude Code** — A separate assistant product that uses the same plugin Markdown. You do not install it inside Cursor; see [Cursor workflows](cursor-workflows.md) for how the files map.
 
 ## What Cursor is
 
-Cursor is a code editor based on VS Code with integrated AI assistance. If you know VS Code, you will already feel comfortable in the Cursor UI. If you have never used VS Code, treat Cursor like any desktop editor with a file tree on the side, tabs for open files, and a **Terminal** menu for a built-in shell. Use **File** > **Open Folder** (or your operating system equivalent) to open the cloned repo folder `redhat-docs-agent-tools/`. The **Agent** side panel on the right is separate from the file tree; open it when you want AI help.
+Cursor is a code editor based on VS Code with integrated AI assistance. If you know VS Code, you will already feel comfortable in the Cursor UI. If you have never used VS Code, treat Cursor like any desktop editor with a file tree on the side, tabs for open files, and a **Terminal** menu for a built-in shell. Use **File** → **Open Folder** (or your operating system equivalent) to open the cloned repo folder `redhat-docs-agent-tools/`. The **Agent** side panel on the right is separate from the file tree; open it when you want AI help.
 
-No matter what repository you're working in, using Cursor, you can select different modes (`Ask`, `Debug`, `Plan`, `Agent`) depending on what goals you are trying to achieve. You can also choose the model you want to use to provide assistance (including different `claude` and `gpt` models).
+In any repository, you can open Cursor and select different modes (`Ask`, `Debug`, `Plan`, `Agent`) to match your goal. You can also choose the model you want to use to provide assistance (including different `claude` and `gpt` models).
 
 In the Red Hat Docs Agent Tools repo, you use Cursor to read and edit skills, commands, and agents under `plugins/`. These items are formatted as plain Markdown. You can also preview the Red Hat Docs Agent Tools documentation site locally with `make serve`.
 
@@ -57,7 +66,7 @@ Note that no Claude Code marketplace equivalent exists inside Cursor. You work w
 
 Always reference **skills** with the fully qualified form `plugin:skill` (for example, `docs-tools:jira-reader`, not `jira-reader` alone). The same rule applies in agent instructions, cross-references, and inline text. See [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) for the full convention and examples.
 
-## Example: use a skill in a documentation repository
+## Example: Use a skill in a documentation repository
 
 Your **product documentation** usually lives in a different Git repository from Red Hat Docs Agent Tools. Skills are Markdown files under `plugins/<plugin>/skills/` in the Red Hat Docs Agent Tools clone. In Cursor you **do not** install skills into the docs repo; you **load** the skill files and project rules into the assistant while you work on your AsciiDoc, Markdown, or other doc sources.
 
@@ -68,7 +77,7 @@ Your **product documentation** usually lives in a different Git repository from 
    ```text
    ~/repos/
      my-product-docs/          # your documentation repository
-     redhat-docs-agent-tools/  # this plugin and skills repository
+     redhat-docs-agent-tools/  # Agent Tools plugins and skills
    ```
 
    Example commands (Linux or macOS):
@@ -79,7 +88,7 @@ Your **product documentation** usually lives in a different Git repository from 
    git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
    ```
 
-1. **Open a multi-root workspace in Cursor.** Use **File** > **Open Folder** and select `~/work/my-product-docs` (or your real docs path) first. Then use **File** > **Add Folder to Workspace** and add `~/repos/redhat-docs-agent-tools`. Save the workspace if prompted (for example **File** > **Save Workspace As** → `my-docs-and-tools.code-workspace`) so you can reopen both folders next time. In the sidebar you should see **two** top-level roots, often labeled with the folder names `my-product-docs` and `redhat-docs-agent-tools`.
+1. **Open a multi-root workspace in Cursor.** Use **File** → **Open Folder** and select `~/repos/my-product-docs` (or your real docs path) first. Then use **File** → **Add Folder to Workspace** and add `~/repos/redhat-docs-agent-tools`. Save the workspace if prompted (for example **File** → **Save Workspace As** → `my-docs-and-tools.code-workspace`) so you can reopen both folders next time. In the sidebar you should see **two** top-level roots, often labeled with the folder names `my-product-docs` and `redhat-docs-agent-tools`.
 
 1. **Open a file from your docs repo.** For example open `modules/install/overview.adoc`, `assemblies/assembly-about.adoc`, or `README.md` at the root of `my-product-docs`. The path depends on your project. The file must be located under **your** documentation tree, not under `redhat-docs-agent-tools/`.
 
@@ -197,9 +206,15 @@ The repository ships [AGENTS.md](https://github.com/redhat-documentation/redhat-
 1. Type **`@`** (at-sign). Cursor usually shows a menu of files, symbols, or context types.
 1. Begin typing **`AGENTS`** or **`agents`** and choose **`AGENTS.md`** from the list when it appears, or select **File** / workspace file search if your build offers it and pick `AGENTS.md` from the repository root.
 1. Confirm that **`AGENTS.md`** appears as an attachment or inline reference in the compose box (wording differs by build).
-1. On a **new line**, write your request (for example, “Summarize the skill naming rule in AGENTS.md” or “Help me edit this plugin following AGENTS.md”).
+1. On a **new line**, write your request (for example, “Summarize the skill naming rule in AGENTS.md” or “Help me edit a plugin following AGENTS.md”).
 
-If your Cursor build does not show `AGENTS.md` after `@`, try **`@`** then the full relative path from the repo root, for example **`@AGENTS.md`** as plain text, or open **`AGENTS.md`** in the editor first and use the editor’s “add to chat” or “include in context” action if available. You can also **paste a short excerpt** from AGENTS.md into the message when you only need one rule, though attaching the whole file is better for large tasks.
+**If `@` does not show AGENTS.md**
+
+Try **`@`** and the full relative path from the repo root, for example **`@AGENTS.md`** as plain text. Or open **`AGENTS.md`** in the editor first and use the editor’s “add to chat” or “include in context” action if available.
+
+**Other ways to add context**
+
+You can **paste a short excerpt** from AGENTS.md when you only need one rule. For large tasks, attaching the whole file works better than a short paste.
 
 **Automatic rules:** Cursor may already apply files under [`.cursor/rules/`](https://github.com/redhat-documentation/redhat-docs-agent-tools/tree/main/.cursor/rules) without you doing anything. Those rules still pair best with AGENTS.md when you want the assistant to follow the **full** project contract in one place.
 
