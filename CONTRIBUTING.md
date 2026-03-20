@@ -9,8 +9,7 @@ This guide helps you contribute effectively and helps maintainers review efficie
 This repository includes Cursor-oriented project instructions and rules so you can follow the same conventions as Claude Code contributors:
 
 - **[AGENTS.md](AGENTS.md)** — Cursor counterpart to [CLAUDE.md](CLAUDE.md): skill naming, script paths from the workspace root, and contributing rules
-- **[docs/get-started/index.md](docs/get-started/index.md)** — Get Started with Cursor (section overview).
-- **[docs/get-started/cursor-getting-started.md](docs/get-started/cursor-getting-started.md)** — Hub: pick a Cursor workflow.
+- **[docs/get-started/index.md](docs/get-started/index.md)** — Get Started with Cursor (section overview and entry point for Cursor guides).
 - **[docs/get-started/cursor-fundamentals.md](docs/get-started/cursor-fundamentals.md)** — Agent panel, AGENTS.md, `plugin:skill` names, shared terminology.
 - **[docs/get-started/cursor-product-documentation.md](docs/get-started/cursor-product-documentation.md)** — Use skills while editing product docs in another repository.
 - **[docs/contribute/cursor-contributing-tools.md](docs/contribute/cursor-contributing-tools.md)** — Contribute inside the Tools repository with Cursor.

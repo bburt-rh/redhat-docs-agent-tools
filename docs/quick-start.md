@@ -5,7 +5,7 @@ icon: lucide/rocket
 # Quick start
 
 The following steps use **Claude Code** slash commands. If you use **Cursor** with
-this repository, read [Getting started with Cursor](get-started/cursor-getting-started.md)
+this repository, read [Get Started with Cursor](get-started/index.md)
 and [Cursor fundamentals](get-started/cursor-fundamentals.md) first. Cursor does
 not expose the same marketplace or slash-command surface.
 

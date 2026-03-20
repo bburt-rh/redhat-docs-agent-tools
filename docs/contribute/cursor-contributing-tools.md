@@ -6,7 +6,7 @@ icon: lucide/git-branch
 
 This guide is for people who **clone Red Hat Docs Agent Tools** to contribute skills, plugins, commands, or documentation under `plugins/` (and related files).
 
-Read [Cursor fundamentals](../get-started/cursor-fundamentals.md) first (Agent panel, `AGENTS.md`, `@` mentions, and `plugin:skill` names). For the hub page, see [Getting started with Cursor](../get-started/cursor-getting-started.md).
+Read [Cursor fundamentals](../get-started/cursor-fundamentals.md) first (Agent panel, `AGENTS.md`, `@` mentions, and `plugin:skill` names). For the section overview, see [Get Started with Cursor](../get-started/index.md).
 
 ## Start here
 
@@ -46,7 +46,7 @@ Use this section when the workspace contains **only** the Red Hat Docs Agent Too
    workspace root is the folder that contains **`Makefile`**, **`AGENTS.md`**, and
    **`plugins/`** in one place.
 
-Paths in [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and in scripts assume the workspace root matches the repository root.
+   Paths in [AGENTS.md](https://github.com/redhat-documentation/redhat-docs-agent-tools/blob/main/AGENTS.md) and in scripts assume the workspace root matches the repository root.
 
 ### Integrated terminal
 
@@ -100,8 +100,8 @@ plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md
 
 Steps:
 1. Summarize which checks from the skill apply to README-style Markdown.
-2. Propose edits to plugins/docs-tools/README.md that match the skill.
-3. Give a short bullet list of changes suitable for a PR description.
+1. Propose edits to plugins/docs-tools/README.md that match the skill.
+1. Give a short bullet list of changes suitable for a PR description.
 ```
 
 You would paste or adapt that block in **Agent** mode after attaching the listed files (or their `@` references). The same pattern works for other skills and paths; replace the skill name, files, and constraints to match your task.
@@ -154,6 +154,6 @@ For other issues (skill names, Agent checkpoints, usage limits, Debug mode), see
 
 ## See also
 
-- [Getting started with Cursor](../get-started/cursor-getting-started.md) — hub and other paths
+- [Get Started with Cursor](../get-started/index.md) — section overview and guide links
 - [Using Cursor with your product documentation](../get-started/cursor-product-documentation.md) — multi-root workspace with your docs repo
 - [Cursor workflows](cursor-workflows.md) — parity with Claude Code

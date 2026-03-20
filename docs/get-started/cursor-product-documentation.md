@@ -9,7 +9,7 @@ repository and want to apply skills from Red Hat Docs Agent Tools in Cursor.
 
 Read [Cursor fundamentals](cursor-fundamentals.md) first to learn about the Agent
 panel, `AGENTS.md`, `@` mentions, and `plugin:skill` names. For an overview, see
-[Getting started with Cursor](cursor-getting-started.md).
+[Get Started with Cursor](index.md).
 
 ## Start here
 
@@ -59,59 +59,66 @@ doc sources in the product repo.
 ### Recommended layout: multi-root workspace
 
 1. **Clone both repositories to your local disk.** Clone
-   [redhat-docs-agent-tools](https://github.com/redhat-documentation/redhat-docs-agent-tools)
-   so the skill sources exist locally. A common layout is a shared parent directory
-   with two sibling folders:
+    [redhat-docs-agent-tools](https://github.com/redhat-documentation/redhat-docs-agent-tools)
+    so the skill sources exist locally.
 
-   ```text
-   ~/repos/
-     my-product-docs/          # your documentation repository
-     redhat-docs-agent-tools/  # Agent Tools plugins and skills
-   ```
+    1. Use a shared parent directory with two sibling folders (for example the
+        layout below).
 
-   Example commands (Linux or macOS):
+        ```text
+        ~/repos/
+          my-product-docs/          # your documentation repository
+          redhat-docs-agent-tools/  # Agent Tools plugins and skills
+        ```
 
-   ```bash
-   mkdir -p ~/repos && cd ~/repos
-   git clone https://github.com/your-org/my-product-docs.git
-   git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
-   ```
+    1. On Linux or macOS, run commands such as the following (adjust URLs and
+        paths to match your forks and directories).
 
-1. **Open a multi-root workspace in Cursor.** Use **File** → **Open Folder** and
-   select `~/repos/my-product-docs` (or your real docs path) first. Then use **File**
-   → **Add Folder to Workspace** and add `~/repos/redhat-docs-agent-tools`. Save
-   the workspace if prompted (for example **File** → **Save Workspace As** →
-   `my-docs-and-tools.code-workspace`) so you can reopen both folders next time.
-   In the sidebar you should see **two** top-level roots, often labeled with the
-   folder names `my-product-docs` and `redhat-docs-agent-tools`.
+        ```bash
+        mkdir -p ~/repos && cd ~/repos
+        git clone https://github.com/your-org/my-product-docs.git
+        git clone https://github.com/redhat-documentation/redhat-docs-agent-tools.git
+        ```
+
+1. **Open a multi-root workspace in Cursor.**
+
+    1. Use **File** → **Open Folder** and select `~/repos/my-product-docs` (or your
+        real docs path) first.
+    1. Use **File** → **Add Folder to Workspace** and add
+        `~/repos/redhat-docs-agent-tools`.
+    1. Save the workspace if prompted (for example **File** → **Save Workspace As**
+        → `my-docs-and-tools.code-workspace`) so you can reopen both folders next
+        time.
+    1. In the sidebar, confirm **two** top-level roots, often labeled with the
+        folder names `my-product-docs` and `redhat-docs-agent-tools`.
 
 1. **Open a file from your docs repo.** For example open
-   `modules/install/overview.adoc`, `assemblies/assembly-about.adoc`, or `README.md`
-   at the root of `my-product-docs`. The path depends on your project. The file must
-   be located under **your** documentation tree, not under `redhat-docs-agent-tools/`.
+    `modules/install/overview.adoc`, `assemblies/assembly-about.adoc`, or `README.md`
+    at the root of `my-product-docs`. The path depends on your project. The file
+    must be located under **your** documentation tree, not under
+    `redhat-docs-agent-tools/`.
 
-1. **Attach Agent Tools repo files in Agent mode.** Switch to **Agent** mode. In
-   the message box, type **`@`** and pick:
+1. **Attach Agent Tools repo files in Agent mode.**
 
-   - `AGENTS.md` from the **redhat-docs-agent-tools** root (if the picker shows a
-     prefix, choose the copy that lives next to `plugins/`, not a file from your
-     product docs).
-   - The skill file you need, for example
-     `plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md`, again from the
-     **redhat-docs-agent-tools** tree.
+    1. Switch to **Agent** mode. In the message box, type **`@`**.
+    1. Attach **`AGENTS.md`** from the **redhat-docs-agent-tools** root (if the
+        picker shows a prefix, choose the copy that lives next to `plugins/`, not a
+        file from your product docs).
+    1. Attach the skill file you need, for example
+        `plugins/docs-tools/skills/rh-ssg-formatting/SKILL.md`, from the
+        **redhat-docs-agent-tools** tree.
+    1. If the menu lists workspace folder names, select paths that start with
+        **`redhat-docs-agent-tools/`**. Attach your content file the same way (for
+        example `my-product-docs/modules/install/overview.adoc`) if it is not
+        already open in the editor context.
 
-   If the menu lists workspace folder names, select paths that start with
-   **`redhat-docs-agent-tools/`**. Attach your content file the same way (for example
-   `my-product-docs/modules/install/overview.adoc`) if it is not already open in
-   the editor context.
+1. **Enter a prompt with `plugin:skill` and your paths.**
 
-1. **Enter a prompt with `plugin:skill` and your paths.** Name the fully
-   qualified skill and paths under **your** docs repo root, as in the example block
-   below. Use repo-relative paths (for example `modules/install/overview.adoc`) so
-   the assistant edits the correct file.
-
-You can browse available skills in the [Cursor skill
-index](../cursor-skills-index.md) or under `plugins/` in the clone.
+    1. Name the fully qualified skill and paths under **your** docs repo root, as
+        in the example block below. Use repo-relative paths (for example
+        `modules/install/overview.adoc`) so the assistant edits the correct file.
+    1. When you need a `plugin:skill` name, browse the [Cursor skill
+        index](../cursor-skills-index.md) or under `plugins/` in the clone.
 
 ### Example prompt (AsciiDoc or Markdown topic)
 
@@ -165,8 +172,7 @@ troubleshooting](cursor-fundamentals.md#common-tips-and-troubleshooting).
 
 ## See also
 
-- [Get Started with Cursor](index.md) — section overview
-- [Getting started with Cursor](cursor-getting-started.md) — hub and other paths
+- [Get Started with Cursor](index.md) — section overview and guide links
 - [Contributing with Cursor](../contribute/cursor-contributing-tools.md) — working
   inside the Tools repository
 - [Cursor workflows](../contribute/cursor-workflows.md) — parity with Claude Code

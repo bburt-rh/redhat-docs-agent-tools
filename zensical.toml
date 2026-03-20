@@ -29,7 +29,6 @@ nav = [
     ]},
     {"Get Started with Cursor" = [
         {"Overview" = "get-started/index.md"},
-        {"Getting started with Cursor" = "get-started/cursor-getting-started.md"},
         {"Cursor fundamentals" = "get-started/cursor-fundamentals.md"},
         {"Using Cursor with your documentation" = "get-started/cursor-product-documentation.md"},
     ]},

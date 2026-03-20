@@ -4,7 +4,7 @@ icon: lucide/monitor
 
 # Cursor workflows
 
-If you are new to Cursor or to agent-style workflows in the editor, read [Getting started with Cursor](../get-started/cursor-getting-started.md) and [Cursor fundamentals](../get-started/cursor-fundamentals.md) first.
+If you are new to Cursor or to agent-style workflows in the editor, read [Get Started with Cursor](../get-started/index.md) and [Cursor fundamentals](../get-started/cursor-fundamentals.md) first.
 
 This page describes how to use and contribute to Red Hat Docs Agent Tools from **Cursor**. The plugin format and marketplace in this repository target **Claude Code**; Cursor does not implement the same marketplace or slash-command surface. You can still author and review the same Markdown skills, commands, agents, and reference material when you work in this repository.
 
