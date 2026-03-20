@@ -25,6 +25,10 @@ import os
 import re
 import sys
 
+# NOTE: find_block_ranges() and is_skip_line() are intentionally duplicated
+# from check-fluff.py to keep each script standalone with no extra imports
+# beyond the standard library.
+
 # Directories to scan (relative to DOCS_DIR)
 SCAN_DIRS = ["assemblies", "topics"]
 

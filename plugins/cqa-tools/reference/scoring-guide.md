@@ -12,7 +12,7 @@
 ## Scoring Rules
 
 - **Evidence-based only.** Every score must cite specific file counts, line numbers, or tool output. Never score based on impression.
-- **Run the check before scoring.** If a check requires a tool (Vale, validate-refs.py), run it and paste the result.
+- **Run the check before scoring.** If a check requires a tool (Vale, the docs repo's `validate-refs.py`), run it and paste the result.
 - **Zero tolerance for "4".** A score of 4 means zero violations. One violation drops to 3.
 - **Distinguish required vs important.** Required items that score 2 or below are blockers. Important items at 2 are flagged but not blocking.
 

@@ -13,6 +13,7 @@ Usage:
 
 Exit codes:
     0 - Report generated (always succeeds — this is informational)
+    2 - Invalid arguments (e.g., docs_dir is not a directory)
 """
 
 import argparse

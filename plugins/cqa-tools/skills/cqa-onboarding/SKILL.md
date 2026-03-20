@@ -79,7 +79,7 @@ This parameter requires human confirmation and cannot be fully assessed through 
 
 3. **CI/CD pipeline validation**: Verify the pipeline runs automated checks that catch technical issues:
    - Vale DITA linting
-   - Cross-reference validation (`validate-refs.py`)
+   - Cross-reference validation (the docs repo's own `scripts/validate-refs.py`)
    - Build validation (ccutil compile)
 
 4. **SME merge requests**: Check for recent MRs from SMEs that update technical content:
@@ -237,7 +237,7 @@ Content must be published to the official Red Hat documentation site (`docs.redh
 
 1. **Stage branch existence**: Verify stage branches exist for the current and previous releases:
    ```bash
-   git branch -r | grep 'stage'
+   git -C "$DOCS_REPO" branch -r | grep 'stage'
    ```
 
 2. **Stage branch pipeline**: Verify the stage branch triggers the Pantheon publishing pipeline. The pipeline should have:
@@ -253,7 +253,7 @@ Content must be published to the official Red Hat documentation site (`docs.redh
 
 5. **Content freshness**: Check that the most recent stage branch reflects the latest content updates:
    ```bash
-   git log --oneline -5 origin/<product>-<X.Y>-stage
+   git -C "$DOCS_REPO" log --oneline -5 origin/<product>-<X.Y>-stage
    ```
 
 ### Scoring
@@ -275,5 +275,5 @@ ls "$DOCS_REPO/pantheon/"
 ls "$DOCS_REPO/titles/"*/master.adoc
 ls "$DOCS_REPO/titles/"*/docinfo.xml
 ls "$DOCS_REPO/.editorconfig"
-git branch -r | grep 'stage'
+git -C "$DOCS_REPO" branch -r | grep 'stage'
 ```

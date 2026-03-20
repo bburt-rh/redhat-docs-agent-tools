@@ -317,6 +317,7 @@ After fixing any violations, verify:
 ```bash
 cd "$DOCS_REPO"
 vale assemblies/ topics/ titles/administration_guide/master.adoc titles/user_guide/master.adoc
+# validate-refs.py is the docs repo's own script, not a plugin script
 python3 scripts/validate-refs.py
 
 # Run all legal/branding automation scripts

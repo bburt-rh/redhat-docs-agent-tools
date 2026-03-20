@@ -99,7 +99,7 @@ Documentation must address the pain points users are likely to encounter when ac
 
 ### Q8: Acronyms
 
-First use of each acronym per guide must be expanded. Common acronyms to check:
+First use of each acronym per guide must be expanded. This is a representative subset of common acronyms — check the product's glossary or style guide for a complete list:
 CLI, TLS, OAuth, DNS, API, HTTP, SSH, RBAC, OLM, PVC, UDI, CRD, CR, FQDN, IDE, OIDC, CA, CORS
 
 ### Q9: Additional resources quality

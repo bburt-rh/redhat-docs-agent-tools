@@ -20,7 +20,7 @@ Generate the final CQA 2.1 Content Quality Assessment report after all parameter
 **Content location**: `<repo-path>/` (assemblies/, topics/, snippets/)
 **Date of review**: YYYY-MM-DD
 **Files analyzed**: N (X assemblies + Y topics) + Z snippets
-**Tools used**: Vale asciidoctor-dita-vale, validate-refs.py, cqa-audit.py
+**Tools used**: Vale asciidoctor-dita-vale, docs repo's validate-refs.py, cqa-audit.py
 ```
 
 ### Per-tab tables

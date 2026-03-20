@@ -199,7 +199,8 @@ def is_definition_list(line):
 def is_link_only_item(line):
     """Check if a list item contains only a link/xref (no prose to check)."""
     s = line.strip()
-    content = re.sub(r'^\*{1,3}\s+', '', s)
+    # Remove unordered or ordered list markers
+    content = re.sub(r'^(?:\*{1,3}|\.{1,3})\s+', '', s)
     if re.match(r'^(xref:|link:|<<)[^\s]*\[[^\]]*\]\s*$', content):
         return True
     return False
