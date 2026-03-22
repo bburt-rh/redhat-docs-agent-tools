@@ -37,7 +37,7 @@ By default, the workflow creates a clean branch from the upstream default branch
 
 Documentation files are written directly to the repository at locations determined by the detected build framework. A manifest is saved to track what was written:
 
-```
+```text
 .claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
@@ -55,7 +55,7 @@ Documentation files themselves are placed at their correct repo locations (e.g.,
 
 **AsciiDoc (default):**
 
-```
+```text
 .claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
@@ -73,7 +73,7 @@ Documentation files themselves are placed at their correct repo locations (e.g.,
 
 **MkDocs Markdown (`--mkdocs`):**
 
-```
+```text
 .claude/docs/
 ├── workflow/           # Workflow state files (JSON)
 ├── requirements/       # Stage 1 outputs
@@ -224,10 +224,10 @@ set -a && source ~/.env.jira_internal && set +a
 
 ### Step 2b: Create Work Branch (default mode only)
 
-**Skip this step entirely when `--draft` is set.** Only create a branch in default (update-in-place) mode.
+**Skip this step entirely when `--draft` is set or when the action is not `start`.** Only create a branch on `start` in default (update-in-place) mode.
 
 ```bash
-if [[ "$DRAFT" != "true" ]]; then
+if [[ "$ACTION" == "start" && "$DRAFT" != "true" ]]; then
     JIRA_URL="https://redhat.atlassian.net"
 
     # Auto-detect remote and default branch
@@ -296,6 +296,11 @@ if [[ ${#PR_URLS[@]} -gt 0 ]]; then
     PR_URLS_JSON=$(printf '%s\n' "${PR_URLS[@]}" | jq -R . | jq -s .)
 fi
 
+# Safely encode values that may contain special characters for JSON
+SUMMARY_JSON=$(if [[ -n "${SUMMARY:-}" ]]; then printf '%s' "$SUMMARY" | jq -Rs .; else echo null; fi)
+BRANCH_NAME_JSON=$(if [[ -n "${BRANCH_NAME:-}" ]]; then printf '%s' "$BRANCH_NAME" | jq -Rs .; else echo null; fi)
+CREATE_JIRA_JSON=$(if [[ -n "$CREATE_JIRA_PROJECT" ]]; then printf '%s' "$CREATE_JIRA_PROJECT" | jq -Rs .; else echo null; fi)
+
 cat > "$STATE_FILE" << EOF
 {
   "ticket": "${TICKET}",
@@ -307,11 +312,11 @@ cat > "$STATE_FILE" << EOF
     "pr_urls": ${PR_URLS_JSON},
     "format": "${OUTPUT_FORMAT}",
     "draft": ${DRAFT},
-    "create_jira_project": $(if [[ -n "$CREATE_JIRA_PROJECT" ]]; then printf '"%s"' "$CREATE_JIRA_PROJECT"; else echo null; fi)
+    "create_jira_project": ${CREATE_JIRA_JSON}
   },
   "data": {
-    "jira_summary": $(if [[ -n "${SUMMARY:-}" ]]; then printf '"%s"' "$SUMMARY"; else echo null; fi),
-    "branch_name": $(if [[ -n "${BRANCH_NAME:-}" ]]; then printf '"%s"' "$BRANCH_NAME"; else echo null; fi),
+    "jira_summary": ${SUMMARY_JSON},
+    "branch_name": ${BRANCH_NAME_JSON},
     "related_prs": []
   },
   "stages": {
