@@ -6,7 +6,7 @@ description: >
   sequentially, manages progress state, handles iteration and confirmation
   gates. Claude is the orchestrator — the YAML is a step list, not a
   workflow engine.
-argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--integrate] [--create-jira <PROJECT>]
+argument-hint: <ticket> [--workflow <name>] [--pr <url>]... [--mkdocs] [--draft] [--create-jira <PROJECT>]
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion, WebSearch, WebFetch
 ---
 
@@ -41,7 +41,7 @@ bash scripts/setup-hooks.sh
 - `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list)
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc
-- `--integrate` — Run integration steps after review
+- `--draft` — Write documentation to a staging area instead of directly into the repo. When set, the writing step uses DRAFT placement mode (no framework detection, no branch creation). Without this flag, UPDATE-IN-PLACE is the default
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
 
 ## Load the step list
@@ -58,7 +58,6 @@ Read the YAML file and extract the ordered step list. Each step has: `name`, `sk
 
 ### 3. Evaluate `when` conditions
 
-- `when: integrate` → run this step only if `--integrate` was passed
 - `when: create_jira_project` → run this step only if `--create-jira` was passed
 - Steps with no `when` always run
 - Steps that don't meet their `when` condition are marked `skipped` in the progress file
@@ -80,9 +79,10 @@ Steps declare their inputs as a list of upstream step names in the YAML:
   skill: docs-tools:docs-workflow-writing
   inputs: [planning]
 
-- name: integrate-execute
-  skill: docs-tools:docs-workflow-integrate
-  inputs: [writing, integrate-plan]
+- name: create-jira
+  skill: docs-tools:docs-workflow-create-jira
+  when: create_jira_project
+  inputs: [planning]
 ```
 
 The orchestrator validates at load time that every step name in `inputs` exists in the step list. Step skills read their input data from the upstream step's output folder by convention (see below).
@@ -115,10 +115,6 @@ The ticket ID is converted to **lowercase** for directory names (e.g., `PROJ-123
     review.md
   style-review/
     review.md
-  integrate-plan/
-    plan.md
-  integrate-execute/
-    report.md
   workflow/
     docs-workflow_proj-123.json
 ```
@@ -145,7 +141,7 @@ The `workflow_type` field and filename prefix match the YAML's `workflow.name`. 
   "updated_at": "<ISO 8601>",
   "options": {
     "format": "adoc",
-    "integrate": false,
+    "draft": false,
     "create_jira_project": null,
     "pr_urls": []
   },
@@ -186,7 +182,7 @@ Before starting, check for a progress file at `.claude/docs/<ticket>/workflow/<w
 3. Resume from the first step with status `"pending"` or `"failed"`
 4. Before running the resume step, validate its input dependencies are satisfied
 5. Tell the user: "Found existing work for `<ticket>`. Resuming from `<step>`."
-6. If the user provided additional flags on resume (e.g., `--integrate`), update the progress file options accordingly
+6. If the user provided additional flags on resume (e.g., `--create-jira`), update the progress file options accordingly
 
 **If no progress file exists**, start from step 1 and create a new progress file.
 
@@ -206,10 +202,8 @@ Build the args string for the step skill:
 1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the base output path
 2. **From orchestrator context**: Step-specific args from parsed CLI flags:
    - `requirements`: `[--pr <url>]...`
-   - `writing`: `--format <adoc|mkdocs>`
+   - `writing`: `--format <adoc|mkdocs> [--draft]`
    - `style-review`: `--format <adoc|mkdocs>`
-   - `integrate-plan`: `--phase plan`
-   - `integrate-execute`: `--phase execute`
    - `create-jira`: `--project <PROJECT>`
 
 Step skills derive their own output folder and input folders from `--base-path` and step name conventions. No per-input flag wiring needed.
@@ -243,23 +237,6 @@ The technical review step runs in a loop until confidence is acceptable or three
    - `MEDIUM` is acceptable — proceed with a warning that manual review is recommended
    - `LOW` after max iterations — ask the user whether to proceed or stop
 
-## Integration confirmation gate
-
-Before running `integrate-execute`:
-
-1. Validate that `integrate-plan` completed successfully. If `integrate-plan` has status `failed` or output is null, fail `integrate-execute` immediately — do **not** present the confirmation gate
-2. Read the integration plan from `<base_path>/integrate-plan/plan.md`. If the file does not exist on disk (e.g., deleted between sessions), mark `integrate-plan` as `pending` and re-run it before proceeding
-3. Present a summary to the user:
-   - Detected build framework
-   - Number of files to copy/update
-   - The Operations table from the plan
-   - Any conflicts flagged
-4. Ask: "The integration plan proposes the changes listed above. Shall I proceed?"
-5. If **yes** → run `integrate-execute`
-6. If **no** → mark `integrate-execute` as completed with a note that the plan is saved for manual reference; do not run the skill
-
-This gate is defined here in the orchestrator skill, not in the YAML.
-
 ## Completion
 
 After all steps complete (or are skipped):
@@ -285,7 +262,7 @@ User says: `"Resume docs workflow for PROJ-123"`
 3. Read it, skip completed steps, resume from first `pending` or `failed` step
 4. Before running the resume step, **validate its input dependencies** — every required upstream step must have `status: "completed"` and a non-null `output` folder. If a dependency is `failed` or `pending`, re-run that dependency first
 5. For each upstream dependency, verify the output folder still exists on disk. If an output folder was deleted, mark that step as `pending` and re-run it
-6. The user can provide additional flags on resume (e.g., add `--integrate`) — update the progress file options accordingly
+6. The user can provide additional flags on resume (e.g., add `--create-jira`) — update the progress file options accordingly
 
 ### After failure
 
