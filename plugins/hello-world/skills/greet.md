@@ -21,8 +21,8 @@ Prints a friendly greeting. If a name is provided, the greeting is personalized.
 2. Otherwise, print a generic greeting.
 
 Print the greeting to the user:
-- With argument: "Hello, {name}! Welcome to Red Hat Docs Agent Tools."
-- Without argument: "Hello! Welcome to Red Hat Docs Agent Tools."
+- With argument: "Hello, {name}!"
+- Without argument: "Well hello there!"
 
 ## Examples
 

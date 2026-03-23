@@ -8,7 +8,7 @@
       "name": "hello-world",
       "source": "./plugins/hello-world",
       "description": "A hello world reference plugin for Claude Code agent tools.",
-      "version": "1.0.1"
+      "version": "0.0.1"
     },
     {
       "name": "docs-tools",
