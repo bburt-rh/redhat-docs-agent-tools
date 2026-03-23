@@ -22,7 +22,7 @@ JQL=""
 BASE_PATH=".claude/docs"
 LABEL="docs-workflow-started"
 ADD_LABEL=false
-MAX_RESULTS=50
+MAX_RESULTS=5
 JIRA_URL="${JIRA_URL:-https://redhat.atlassian.net}"
 
 # Resolve jira_reader.py relative to this script
@@ -108,6 +108,7 @@ TOTAL=$(echo "$ALL_TICKETS" | wc -l | tr -d ' ')
 # --- Filter out already-processed tickets ---
 READY=()
 declare -A FILTERED
+FILTERED_COUNT=0
 
 while IFS= read -r TICKET; do
   [[ -n "$TICKET" ]] || continue
@@ -116,13 +117,12 @@ while IFS= read -r TICKET; do
   # Check for existing progress file
   if compgen -G "${BASE_PATH}/${TICKET_LOWER}/workflow/*.json" >/dev/null 2>&1; then
     FILTERED["$TICKET"]="progress_file_exists"
+    FILTERED_COUNT=$((FILTERED_COUNT + 1))
     continue
   fi
 
   READY+=("$TICKET")
 done <<< "$ALL_TICKETS"
-
-FILTERED_COUNT=${#FILTERED[@]}
 
 # --- Build JSON output ---
 if [[ ${#READY[@]} -eq 0 ]]; then
@@ -133,14 +133,16 @@ fi
 
 FILTERED_JSON="{"
 FIRST=true
-for KEY in "${!FILTERED[@]}"; do
-  if [[ "$FIRST" == "true" ]]; then
-    FIRST=false
-  else
-    FILTERED_JSON+=","
-  fi
-  FILTERED_JSON+="$(echo "$KEY" | jq -Rs .):$(echo "${FILTERED[$KEY]}" | jq -Rs .)"
-done
+if [[ $FILTERED_COUNT -gt 0 ]]; then
+  for KEY in "${!FILTERED[@]}"; do
+    if [[ "$FIRST" == "true" ]]; then
+      FIRST=false
+    else
+      FILTERED_JSON+=","
+    fi
+    FILTERED_JSON+="$(echo "$KEY" | jq -Rs .):$(echo "${FILTERED[$KEY]}" | jq -Rs .)"
+  done
+fi
 FILTERED_JSON+="}"
 
 RESULT=$(jq -n \

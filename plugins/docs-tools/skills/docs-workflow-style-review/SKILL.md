@@ -1,8 +1,6 @@
 ---
 name: docs-workflow-style-review
-description: >
-  Style guide compliance review of documentation drafts. Dispatches the
-  docs-reviewer agent with Vale linting and 18+ style guide review skills.
+description: Style guide compliance review of documentation drafts. Dispatches the docs-reviewer agent with Vale linting and 18+ style guide review skills.
 argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs>
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---

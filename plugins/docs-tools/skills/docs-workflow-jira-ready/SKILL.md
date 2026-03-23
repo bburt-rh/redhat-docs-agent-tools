@@ -1,20 +1,18 @@
 ---
 name: docs-workflow-jira-ready
-description: >
-  Check whether a JIRA query returns tickets ready for the docs workflow.
-  Queries JIRA via jira_reader.py, filters out tickets that already have
-  a workflow progress file or a "docs-workflow-started" label, and outputs
-  a JSON list of actionable ticket IDs. Designed as the entry point for
-  cron-triggered or CI-triggered docs-orchestrator runs.
+description: Check whether a JIRA query returns tickets ready for the docs workflow. Queries JIRA via jira_reader.py, filters out tickets that already have a workflow progress file or a "docs-workflow-started" label, and outputs a JSON list of actionable ticket IDs. Designed as the entry point for cron-triggered or CI-triggered docs-orchestrator runs.
+model: claude-haiku-4-5@20251001
 argument-hint: --jql <query> [--base-path <path>] [--label <label>] [--dry-run]
 allowed-tools: Read, Bash, Glob, Grep
 ---
 
 # JIRA Ready Check
 
-Gate skill for automated docs-orchestrator runs. Checks JIRA for new tickets matching a query, filters out already-processed tickets, and outputs actionable ticket IDs.
 
 This skill is a **check-and-return** gate — it does not dispatch the orchestrator. The caller (cron script, CI workflow, or human) decides what to do with the returned ticket list.
+Unlike other step skills, this skill does **not** dispatch an agent. 
+
+Gate skill for automated docs-orchestrator runs. Checks JIRA for new tickets matching a query, filters out already-processed tickets, and outputs actionable ticket IDs.
 
 ## Arguments
 
@@ -23,7 +21,7 @@ This skill is a **check-and-return** gate — it does not dispatch the orchestra
 - `--label <label>` — JIRA label that marks a ticket as already started (default: `docs-workflow-started`)
 - `--dry-run` — Show what would be returned without adding labels or side effects (default behavior; included for explicitness)
 - `--add-label` — After returning results, add the `--label` value to each returned ticket in JIRA (opt-in, prevents re-processing on next run)
-- `--max-results <n>` — Maximum number of JIRA results to fetch (default: 50, passed through to jira_reader.py)
+- `--max-results <n>` — Maximum number of JIRA results to fetch (default: 5, passed through to jira_reader.py)
 
 ## Environment
 

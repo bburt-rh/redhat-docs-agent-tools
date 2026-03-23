@@ -1,10 +1,7 @@
 ---
 name: docs-workflow-create-jira
-description: >
-  Create a linked JIRA ticket for documentation work. No agent dispatch —
-  uses direct JIRA REST API calls via a shell script. Checks for existing
-  links, handles public/private project visibility, converts markdown to
-  JIRA wiki markup.
+description: Create a linked JIRA ticket for documentation work. No agent dispatch. Uses direct JIRA REST API calls via a shell script. Checks for existing links, handles public/private project visibility, converts markdown to JIRA wiki markup.
+model: claude-haiku-4-5@20251001
 argument-hint: <ticket> --base-path <path> --project <PROJECT>
 allowed-tools: Read, Write, Bash
 ---

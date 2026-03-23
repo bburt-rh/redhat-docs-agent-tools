@@ -1,9 +1,6 @@
 ---
 name: docs-workflow-tech-review
-description: >
-  Technical accuracy review of documentation drafts. Dispatches the
-  technical-reviewer agent. Output includes confidence rating (HIGH/MEDIUM/LOW).
-  Iteration logic is owned by the orchestrator, not this skill.
+description: Technical accuracy review of documentation drafts. Dispatches the technical-reviewer agent. Output includes confidence rating (HIGH/MEDIUM/LOW) Iteration logic is owned by the orchestrator, not this skill.
 argument-hint: <ticket> --base-path <path>
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---

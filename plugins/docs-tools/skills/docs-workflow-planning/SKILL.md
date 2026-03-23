@@ -1,8 +1,6 @@
 ---
 name: docs-workflow-planning
-description: >
-  Create a documentation plan from requirements analysis output. Dispatches the
-  docs-planner agent. Invoked by the orchestrator.
+description: Create a documentation plan from requirements analysis output. Dispatches the docs-planner agent. Invoked by the orchestrator.
 argument-hint: <ticket> --base-path <path>
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---

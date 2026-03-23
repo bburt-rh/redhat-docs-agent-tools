@@ -1,8 +1,6 @@
 ---
 name: docs-workflow-requirements
-description: >
-  Analyze documentation requirements for a JIRA ticket. Dispatches the
-  requirements-analyst agent. Invoked by the orchestrator.
+description: Analyze documentation requirements for a JIRA ticket. Dispatches the requirements-analyst agent. Invoked by the orchestrator.
 argument-hint: <ticket> --base-path <path> [--pr <url>]...
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
 ---
