@@ -121,9 +121,13 @@ DRAFT=false
 shift 2 2>/dev/null
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --pr) PR_URLS+=("$2"); shift 2 ;;
+        --pr)
+            [[ -n "${2:-}" && "${2:0:1}" != "-" ]] || { echo "ERROR: --pr requires a URL"; exit 1; }
+            PR_URLS+=("$2"); shift 2 ;;
         --mkdocs) OUTPUT_FORMAT="mkdocs"; shift ;;
-        --create-jira) CREATE_JIRA_PROJECT="$2"; shift 2 ;;
+        --create-jira)
+            [[ -n "${2:-}" && "${2:0:1}" != "-" ]] || { echo "ERROR: --create-jira requires a project key"; exit 1; }
+            CREATE_JIRA_PROJECT="$2"; shift 2 ;;
         --draft) DRAFT=true; shift ;;
         *) shift ;;
     esac
@@ -230,8 +234,14 @@ set -a && source ~/.env.jira_internal && set +a
 if [[ "$ACTION" == "start" && "$DRAFT" != "true" ]]; then
     JIRA_URL="https://redhat.atlassian.net"
 
-    # Auto-detect remote and default branch
-    REMOTE=$(git remote | head -1)
+    # Auto-detect remote and default branch (prefer upstream, then origin, then first listed)
+    if git remote | grep -qx "upstream"; then
+        REMOTE="upstream"
+    elif git remote | grep -qx "origin"; then
+        REMOTE="origin"
+    else
+        REMOTE=$(git remote | head -1)
+    fi
     DEFAULT_BRANCH=$(git remote show "$REMOTE" 2>/dev/null | awk '/HEAD branch/ {print $NF}')
 
     echo "Detected remote: ${REMOTE}, default branch: ${DEFAULT_BRANCH}"
@@ -258,9 +268,13 @@ if [[ "$ACTION" == "start" && "$DRAFT" != "true" ]]; then
     BRANCH_NAME="${TICKET_LOWER}_${SHORT_DESC}"
 
     echo "Creating branch: ${BRANCH_NAME}"
-    git checkout -b "$BRANCH_NAME" "$REMOTE/$DEFAULT_BRANCH"
-
-    echo "Branch ${BRANCH_NAME} created from ${REMOTE}/${DEFAULT_BRANCH}"
+    if git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+        git checkout "${BRANCH_NAME}"
+        echo "Switched to existing branch ${BRANCH_NAME}"
+    else
+        git checkout -b "$BRANCH_NAME" "$REMOTE/$DEFAULT_BRANCH"
+        echo "Branch ${BRANCH_NAME} created from ${REMOTE}/${DEFAULT_BRANCH}"
+    fi
 fi
 ```
 
@@ -1338,11 +1352,6 @@ Start with MkDocs format and a related PR:
 ```
 
 Start with JIRA creation in INFERENG project:
-```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --create-jira INFERENG
-```
-
-Start with JIRA creation:
 ```bash
 /docs-tools:docs-workflow start RHAISTRAT-123 --create-jira INFERENG
 ```
