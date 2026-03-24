@@ -150,7 +150,7 @@ Use `--workflow <name>` to maintain different workflows for different purposes:
 
 ## Using the docs orchestrator in CI/CD
 
-The docs orchestrator can run in GitHub Actions or GitLab CI using [Claude Code in headless mode](https://docs.anthropic.com/en/docs/claude-code/headless-mode). This lets you automate documentation workflows — for example, generating draft docs from a JIRA ticket when a PR is opened, or running style and technical reviews on documentation changes.
+The docs orchestrator can run in GitHub Actions or GitLab CI using [Claude Code in the CLI](https://code.claude.com/docs/en/cli-reference). This lets you automate documentation workflows — for example, generating draft docs from a JIRA ticket when a PR is opened, or running style and technical reviews on documentation changes.
 
 ### Prerequisites
 
