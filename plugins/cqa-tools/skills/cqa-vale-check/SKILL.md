@@ -1,6 +1,6 @@
 ---
 name: cqa-vale-check
-description: Use when assessing CQA parameter P1 (Vale DITA check). Runs Vale with AsciiDocDITA rules (direct for repo scope, dita-validate-asciidoc for assembly/topic scope) and fixes violations to achieve 0 errors and 0 warnings.
+description: Use when assessing CQA parameter P1 (Vale DITA check). Runs Vale with AsciiDocDITA rules (direct for repo scope, dita-tools:dita-validate-asciidoc for assembly/topic scope) and fixes violations to achieve 0 errors and 0 warnings.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 ---
 
@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 
 ## Parameter
 
-**P1: Content passes Vale asciidoctor-dita-vale check with no errors or warnings.**
+**P1: Content passes Vale dita-tools:dita-validate-asciidoc check with no errors or warnings.**
 Level: Required. Target: Score 4 (0 errors, 0 warnings).
 
 ## Step 1: Identify the docs repo
@@ -31,7 +31,7 @@ Choose the approach based on scope.
 
 ### For repo-wide scope — direct Vale invocation
 
-Run Vale directly against all content directories. This catches every `.adoc` file, including orphan files not referenced by any assembly.
+Run Vale directly against all AsciiDoc files in the repo. This catches every `.adoc` file, including orphan files not referenced by any assembly.
 
 First, ensure a `.vale.ini` exists in the docs repo root with AsciiDocDITA rules. If missing, create one:
 
@@ -51,7 +51,7 @@ Then sync and run:
 ```bash
 cd "$DOCS_REPO"
 vale sync
-vale assemblies/ topics/ titles/
+find . -name '*.adoc' -not -type l | xargs vale
 ```
 
 ### For assembly scope — dita-validate-asciidoc
@@ -59,7 +59,7 @@ vale assemblies/ topics/ titles/
 Invoke the `dita-tools:dita-validate-asciidoc` skill, which discovers all included files and runs Vale with content-type-aware ShortDescription filtering:
 
 ```
-Skill: dita-tools:dita-validate-asciidoc, args: "$DOCS_REPO/assemblies/admin/assembly_installing.adoc --existing"
+Skill: dita-tools:dita-validate-asciidoc, args: "$DOCS_REPO/assemblies/admin/assembly_installing.adoc"
 ```
 
 ### For single-topic scope — dita-validate-asciidoc
@@ -130,7 +130,7 @@ For each RelatedLinks warning:
 Invoke `dita-tools:dita-validate-asciidoc` again. The result MUST have no output before scoring.
 
 ```
-Skill: dita-tools:dita-validate-asciidoc, args: "$ASSEMBLY_OR_MASTER --existing"
+Skill: dita-tools:dita-validate-asciidoc, args: "$ASSEMBLY_OR_MASTER"
 ```
 
 If warnings remain, return to Step 3. Do not score until the output is clean.
