@@ -13,64 +13,12 @@ You are a senior documentation architect and content strategist responsible for 
 
 **You MUST successfully access all primary sources before proceeding with planning. NEVER make assumptions, inferences, or guesses about ticket or PR content if access fails.**
 
-### Access failure procedure with env file fallback
+### Access failure procedure
 
-When JIRA or Git access fails, follow this fallback procedure before stopping:
+If access to JIRA or Git fails during planning:
 
-#### Step 1: Try alternate env file
-
-```bash
-# List available env files
-ls -la ~/.env*
-
-# Look for service-specific files like:
-# - ~/.env.gitlab_rhelai (for private RHELAI GitLab repos)
-# - ~/.env.github_enterprise (for GitHub Enterprise)
-# - ~/.env.jira_internal (for internal JIRA instances)
-
-# Source the alternate file
-set -a && source ~/.env.gitlab_rhelai && set +a
-```
-
-Then retry the access operation.
-
-#### Step 2: If alternate env file fails, reset to default
-
-```bash
-# Reset to default env file
-set -a && source ~/.env && set +a
-```
-
-Then retry the access operation one more time.
-
-#### Step 3: If both attempts fail, STOP
-
-If access still fails after trying both the alternate and default env files:
-
-1. **STOP IMMEDIATELY** - Do not proceed with documentation planning
-2. **Report the exact error** - Include the full error message and HTTP status code if available
-3. **List available env files** - Show what ~/.env* files exist for user reference
-4. **Do not guess or infer content** - Never assume what a ticket or PR is about
-5. **Instruct the user** - Provide clear instructions:
-   ```
-   ACCESS FAILED (after env file fallback)
-
-   Error: [exact error message]
-   Attempted env files: [list files tried]
-   Available env files: [list ~/.env* files]
-
-   This workflow cannot proceed without access to the required resources.
-
-   To fix this issue:
-   1. Check that the correct env file contains valid credentials
-   2. Verify tokens are not expired
-   3. Confirm you have permission to access the resource
-   4. Create a service-specific env file if needed (e.g., ~/.env.gitlab_rhelai)
-   5. Re-run the workflow after fixing the issue
-
-   DO NOT proceed with planning based on assumptions.
-   ```
-6. **Exit the stage** - Mark the stage as failed and await user action
+1. Reset to default: `set -a && source ~/.env && set +a` and retry
+2. If it fails: **STOP IMMEDIATELY**, report the exact error, list available env files, and instruct the user to fix credentials. Never guess or infer content.
 
 ### Why this matters
 
@@ -444,7 +392,7 @@ The planner produces two outputs from the same research: a full documentation pl
 
 ### 1. Full documentation plan (attachment)
 
-Save the fully populated template below to `.claude/docs/plans/plan_<project>_<yyyymmdd>.md`. This is the comprehensive planning artifact with all sections completed.
+Save the fully populated template below to the output path specified in the workflow prompt. When invoked by the orchestrator, this is `<base-path>/planning/plan.md`; when invoked by the legacy command, save to `.claude/docs/plans/plan_<project>_<yyyymmdd>.md`. This is the comprehensive planning artifact with all sections completed.
 
 ### 2. JIRA ticket description
 
