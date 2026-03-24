@@ -445,10 +445,18 @@ grep -oE "AsciiDocDITA\.[A-Za-z]+" /tmp/dita-rework-vale-after-info.txt | sort |
 
 ### Step 7: Push Branch
 
-Push the branch to the remote:
+Discover the remote and confirm with the user before pushing:
 
 ```bash
-# Push the branch
+# Show available remotes
+git remote -v
+```
+
+Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `origin`? (yes/no)"**
+
+Only after the user confirms, run:
+
+```bash
 git push -u origin "${BRANCH_NAME}"
 ```
 
@@ -910,7 +918,16 @@ Replace `<input_path>` with the original input path argument.
 
 ## Rewrite Phase 4: Push Branch and Report
 
-Unless `--no-commit` or `--dry-run` is set:
+Unless `--no-commit` or `--dry-run` is set, discover the remote and confirm with the user before pushing:
+
+```bash
+# Show available remotes
+git remote -v
+```
+
+Ask the user: **"Ready to push branch `$BRANCH_NAME` to `origin`? (yes/no)"**
+
+Only after the user confirms, run:
 
 ```bash
 git push -u origin "$BRANCH_NAME"
