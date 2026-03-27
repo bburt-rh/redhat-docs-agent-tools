@@ -154,13 +154,13 @@ Titles must be brief, complete, and descriptive. Assess three dimensions:
 
 | Module type | Required form | Examples |
 |-------------|--------------|----------|
-| PROCEDURE | Gerund phrase (verb + -ing) | "Configuring OAuth", "Installing Dev Spaces" |
+| PROCEDURE | Imperative phrase (verb) | "Configure OAuth", "Install Dev Spaces" |
 | CONCEPT | Noun phrase (NOT gerund) | "Architecture overview", "Server components" |
 | REFERENCE | Noun phrase | "Supported platforms", "CheCluster fields" |
-| ASSEMBLY (task-based) | Gerund phrase | "Configuring server components" |
+| ASSEMBLY (task-based) | Imperative phrase | "Configure server components" |
 | ASSEMBLY (non-procedural) | Noun phrase | "Red Hat Process Automation Manager API reference" |
 
-An assembly is task-based if it contains procedure modules. Flag any procedure title not starting with a gerund, concept/reference titles using gerunds, or task-based assembly titles using noun phrases.
+An assembly is task-based if it contains procedure modules. Flag any procedure title not in imperative form, concept/reference titles using imperatives or gerunds, or task-based assembly titles using noun phrases.
 
 **Check 5b: Title length**
 
@@ -325,7 +325,7 @@ P5 checks that every non-negotiable modular element is present AND meets quality
 
 ### Check 1: Structural elements and abstract formatting
 
-Reference: Ingrid Towey, "Rewrite for Impact: DITA short descriptions" (CCS presentation)
+Reference: "Rewrite for Impact: DITA short descriptions" (CCS presentation)
 
 Every non-snippet module must have:
 
@@ -343,7 +343,7 @@ If P4 Check 1 passed, the above 4 elements are already verified. Additionally, v
 | **Blank line between title and abstract** | There must be at least one blank line between the `= Title` line and `[role="_abstract"]`. Other content (anchors, passthrough comments) may appear between them, but a blank line must exist. |
 | **No blank line between annotation and paragraph** | `[role="_abstract"]` must be followed **immediately** by the abstract paragraph on the next line — no blank lines between them. A blank line after the annotation disconnects the paragraph from the abstract role, making the abstract empty in DITA. |
 | **Single paragraph** | The abstract must be exactly one contiguous paragraph. No blank lines within it, no code blocks, no lists, no admonition blocks. A blank line must terminate the abstract before any subsequent body content. |
-| **Character count 50-300** | The abstract paragraph must be between 50 and 300 characters. Count raw AsciiDoc text (attributes like `{prod-short}` count as their literal text, e.g., 12 characters). "300 characters is between 42 and 75 words" (Ingrid Towey). |
+| **Character count 50-300** | The abstract paragraph must be between 50 and 300 characters. Count raw AsciiDoc text (attributes like `{prod-short}` count as their literal text, e.g., 12 characters). "300 characters is between 42 and 75 words" (CCS presentation). |
 
 **Common structural violations:**
 
@@ -438,7 +438,7 @@ Flag any assembly missing any element. Flag any `include::` missing `[leveloffse
 ### Check 2: Assembly title convention
 
 Per the modular docs guide:
-- **Task-based assemblies** (containing procedure modules): title must use a gerund phrase ("Configuring...", "Installing...", "Managing...")
+- **Task-based assemblies** (containing procedure modules): title must use an imperative phrase ("Configure...", "Install...", "Manage...")
 - **Non-procedural assemblies** (reference-heavy, conceptual): title should use a noun phrase ("Supported platforms", "Architecture overview")
 
 For each assembly, check whether the title form matches its content. A task-based assembly with a noun-phrase title is a violation.

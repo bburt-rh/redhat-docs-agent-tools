@@ -83,7 +83,7 @@ Reference: https://docs.oasis-open.org/dita/dita/v1.3/errata02/os/complete/part3
 
 Every non-snippet module must have a `[role="_abstract"]` annotation followed by a prose paragraph within specific character limits.
 
-Reference: Ingrid Towey, "Rewrite for Impact: DITA short descriptions" (CCS presentation)
+Reference: "Rewrite for Impact: DITA short descriptions" (CCS presentation)
 
 ### Structural checks
 
@@ -93,7 +93,7 @@ Reference: Ingrid Towey, "Rewrite for Impact: DITA short descriptions" (CCS pres
 | **Blank line between title and abstract** | At least one blank line must separate `= Title` from `[role="_abstract"]` |
 | **No blank line between annotation and paragraph** | `[role="_abstract"]` must be followed immediately by the abstract paragraph on the next line. A blank line disconnects them, making the abstract empty in DITA. |
 | **Single paragraph** | The abstract must be exactly one contiguous paragraph. No blank lines within it, no code blocks, no lists, no admonition blocks. A blank line must terminate the abstract before any subsequent body content. |
-| **Character count 50-300** | Count raw AsciiDoc text. Attributes like `{prod-short}` count as their literal text (12 characters). "300 characters is between 42 and 75 words" (Ingrid Towey). |
+| **Character count 50-300** | Count raw AsciiDoc text. Attributes like `{prod-short}` count as their literal text (12 characters). "300 characters is between 42 and 75 words" (CCS presentation). |
 | **Max 50 words** | "A single, concise paragraph containing one or two sentences of no more than 50 words" (DITA 1.3 spec). |
 
 ### Common structural violations
@@ -159,10 +159,10 @@ Reference:
 
 | Module type | Required form | Examples |
 |-------------|--------------|----------|
-| PROCEDURE | Gerund phrase (verb + -ing) | "Configuring OAuth", "Installing Dev Spaces" |
+| PROCEDURE | Imperative phrase (verb) | "Configure OAuth", "Install Dev Spaces" |
 | CONCEPT | Noun phrase (NOT gerund) | "Architecture overview", "Server components" |
 | REFERENCE | Noun phrase | "Supported platforms", "CheCluster fields" |
-| ASSEMBLY (task-based) | Gerund phrase | "Configuring server components" |
+| ASSEMBLY (task-based) | Imperative phrase | "Configure server components" |
 | ASSEMBLY (non-procedural) | Noun phrase | "Architecture overview" |
 
 An assembly is task-based if it contains procedure modules.
