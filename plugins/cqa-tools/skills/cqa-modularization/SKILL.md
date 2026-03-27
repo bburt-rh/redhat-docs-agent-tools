@@ -553,6 +553,12 @@ Record: total files checked per check, number of violations, specific file paths
 
 Each file must use the modular documentation content type (CONCEPT, PROCEDURE, REFERENCE) that is most appropriate for the information it conveys. This goes beyond structural checks (P3/P4) — it verifies that the content type *selection* is correct.
 
+**IMPORTANT — Distinguishing automated checks from manual assessment**: The `check-content-types.py` script performs **structural checks only** (prefix vs declared type, required elements, invalid block titles). It does NOT analyze whether a file's actual content matches its declared type. The checks below (Check 1-5) are **manual assessment** steps that require reading and understanding the file content. When reporting results, clearly separate:
+- **Script findings**: structural issues detected by `check-content-types.py` (prefix mismatch, missing attributes, invalid block titles)
+- **Manual assessment**: content type correctness issues identified by reading the files (e.g., "this proc_ file is primarily explanatory")
+
+Do NOT present manual assessment findings as if they came from the automated script.
+
 ### Check 1: Procedure files contain actionable steps
 
 Every PROCEDURE file must have a `.Procedure` section with ordered steps (`. `) that are actionable instructions. Flag:
@@ -593,7 +599,7 @@ Flag concept files that contain only an abstract and xrefs (typically ≤15 line
 | **2** | Multiple content type mismatches or widespread thin wrappers |
 | **1** | Content types not checked or pervasive mismatches |
 
-Record: total files checked per type, violations per check category, files fixed.
+Record: total files checked per type, violations per check category, files fixed. Clearly label which findings are from automated scripts and which are from manual assessment.
 
 ## Quality: American English grammar
 
