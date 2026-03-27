@@ -1,6 +1,6 @@
 # Red Hat Docs Agent Tools
 
-Follow the shared project conventions in [AGENTS.md](AGENTS.md) for repository structure, skill naming, contributing rules, and general script invocation patterns. The instructions below apply only to Claude Code.
+Follow the shared project conventions in @AGENTS.md for repository structure, skill naming, contributing rules, and general script invocation patterns. The instructions below apply only to Claude Code.
 
 ## Cross-skill script calls
 
