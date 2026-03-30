@@ -448,8 +448,15 @@ grep -oE "AsciiDocDITA\.[A-Za-z]+" /tmp/dita-rework-vale-after-info.txt | sort |
 Discover and validate the push remote before pushing:
 
 ```bash
-# Discover the remote — prefer 'origin', fall back to first available
-if git remote | grep -q '^origin$'; then
+# Discover the remote — check tracking branch first, then prefer 'origin'
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Try to get the remote from the current branch's tracking configuration
+TRACKING_REMOTE=$(git branch -vv | grep "^\*" | awk -F'[][]' '{print $2}' | awk -F'/' '{print $1}')
+
+if [ -n "$TRACKING_REMOTE" ] && git remote | grep -q "^${TRACKING_REMOTE}$"; then
+    PUSH_REMOTE="$TRACKING_REMOTE"
+elif git remote | grep -q '^origin$'; then
     PUSH_REMOTE="origin"
 else
     PUSH_REMOTE=$(git remote | head -n 1)
@@ -460,15 +467,14 @@ if [ -z "$PUSH_REMOTE" ]; then
     exit 1
 fi
 
-echo "Using remote: ${PUSH_REMOTE}"
-git remote -v | grep "^${PUSH_REMOTE}"
-
 # Validate branch — refuse to push main or master
-CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
     echo "ERROR: Refusing to push to protected branch '${CURRENT_BRANCH}'"
     exit 1
 fi
+
+echo "Using remote: ${PUSH_REMOTE}"
+git remote -v | grep "^${PUSH_REMOTE}"
 ```
 
 Ask the user: **"Ready to push branch `${BRANCH_NAME}` to `${PUSH_REMOTE}`? (yes/no)"**
@@ -940,8 +946,15 @@ Replace `<input_path>` with the original input path argument.
 Unless `--no-commit` or `--dry-run` is set, discover and validate the push remote before pushing:
 
 ```bash
-# Discover the remote — prefer 'origin', fall back to first available
-if git remote | grep -q '^origin$'; then
+# Discover the remote — check tracking branch first, then prefer 'origin'
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Try to get the remote from the current branch's tracking configuration
+TRACKING_REMOTE=$(git branch -vv | grep "^\*" | awk -F'[][]' '{print $2}' | awk -F'/' '{print $1}')
+
+if [ -n "$TRACKING_REMOTE" ] && git remote | grep -q "^${TRACKING_REMOTE}$"; then
+    PUSH_REMOTE="$TRACKING_REMOTE"
+elif git remote | grep -q '^origin$'; then
     PUSH_REMOTE="origin"
 else
     PUSH_REMOTE=$(git remote | head -n 1)
@@ -952,15 +965,14 @@ if [ -z "$PUSH_REMOTE" ]; then
     exit 1
 fi
 
-echo "Using remote: ${PUSH_REMOTE}"
-git remote -v | grep "^${PUSH_REMOTE}"
-
 # Validate branch — refuse to push main or master
-CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
     echo "ERROR: Refusing to push to protected branch '${CURRENT_BRANCH}'"
     exit 1
 fi
+
+echo "Using remote: ${PUSH_REMOTE}"
+git remote -v | grep "^${PUSH_REMOTE}"
 ```
 
 Ask the user: **"Ready to push branch `$BRANCH_NAME` to `${PUSH_REMOTE}`? (yes/no)"**
