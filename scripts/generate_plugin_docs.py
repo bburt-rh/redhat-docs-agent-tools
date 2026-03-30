@@ -2,7 +2,6 @@
 """Generate docs pages from plugin metadata and commands."""
 
 import json
-import os
 import re
 import sys
 from pathlib import Path
