@@ -79,6 +79,7 @@
     {
       "gem": "asciidoctor",
       "found_in": [
+        "plugins/dita-tools/skills/dita-callouts/scripts/callouts.rb",
         "plugins/dita-tools/skills/dita-check-asciidoctor/scripts/check_asciidoctor.sh",
         "plugins/dita-tools/skills/dita-reduce-asciidoc/scripts/reduce_asciidoc.sh"
       ]

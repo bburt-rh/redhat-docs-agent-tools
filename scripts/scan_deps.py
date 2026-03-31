@@ -67,10 +67,24 @@ IMPORT_TO_PACKAGE = {
     "urllib3": "urllib3",
 }
 
-# Ruby gems detected by CLI command name in shell scripts.
+# Ruby gems detected by CLI command name in shell scripts or require in .rb files.
 KNOWN_GEMS = {
     "asciidoctor": "asciidoctor",
     "asciidoctor-reducer": "asciidoctor-reducer",
+}
+
+# Ruby stdlib modules to ignore when scanning require statements.
+RUBY_STDLIB = {
+    "abbrev", "base64", "benchmark", "bigdecimal", "cgi", "csv", "date",
+    "delegate", "digest", "drb", "English", "erb", "etc", "fcntl", "fiddle",
+    "fileutils", "find", "forwardable", "io/console", "io/nonblock",
+    "io/wait", "ipaddr", "json", "logger", "monitor", "mutex_m", "net/http",
+    "net/https", "net/pop", "net/smtp", "nkf", "observer", "open-uri",
+    "open3", "openssl", "optparse", "ostruct", "pathname", "pp", "prettyprint",
+    "pstore", "psych", "readline", "reline", "resolv", "rexml", "rinda",
+    "securerandom", "set", "shellwords", "singleton", "socket", "stringio",
+    "strscan", "tempfile", "time", "timeout", "tmpdir", "tsort", "un",
+    "uri", "weakref", "yaml", "zlib",
 }
 
 # System tools detected by command name in shell scripts.
@@ -94,6 +108,21 @@ def scan_python_imports(filepath: Path) -> set[str]:
             if node.module:
                 imports.add(node.module.split(".")[0])
     return imports
+
+
+def scan_ruby_requires(filepath: Path) -> set[str]:
+    """Scan a Ruby file for require statements that match known gems."""
+    content = filepath.read_text()
+    found = set()
+    for match in re.finditer(r"require\s+['\"]([^'\"]+)['\"]", content):
+        mod = match.group(1)
+        if mod in RUBY_STDLIB:
+            continue
+        # Check if the required module maps to a known gem
+        for gem_cmd, gem_name in KNOWN_GEMS.items():
+            if mod == gem_cmd or mod.startswith(gem_cmd + "/"):
+                found.add(gem_name)
+    return found
 
 
 def scan_shell_gems(filepath: Path) -> set[str]:
@@ -146,6 +175,11 @@ def scan_all() -> dict:
                 python_deps.setdefault(pkg, []).append(relative_path(py_file))
             else:
                 print(f"WARNING: unknown import '{imp}' in {py_file}, skipping", file=sys.stderr)
+
+    for rb_file in sorted(PLUGINS_DIR.rglob("*.rb")):
+        rel = relative_path(rb_file)
+        for gem in scan_ruby_requires(rb_file):
+            ruby_deps.setdefault(gem, []).append(rel)
 
     for sh_file in sorted(PLUGINS_DIR.rglob("*.sh")):
         rel = relative_path(sh_file)

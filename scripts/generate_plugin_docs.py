@@ -299,7 +299,7 @@ def generate_installation_page(plugins: list[dict], deps: dict) -> str:
     if deps.get("python") or deps.get("ruby") or deps.get("system"):
         lines.append("## Software dependencies")
         lines.append("")
-        lines.append("Plugin scripts require the following software. Install what you need based on which plugins you use.")
+        lines.append("Install the following software packages that are required by plugin scripts.")
         lines.append("")
 
     if deps.get("python"):
