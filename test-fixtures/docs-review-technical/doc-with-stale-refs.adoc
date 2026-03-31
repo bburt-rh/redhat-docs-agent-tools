@@ -1,0 +1,84 @@
+:_mod-docs-content-type: PROCEDURE
+
+[id="deploying-with-stale-refs_{context}"]
+= Deploying with stale references
+
+[role="_abstract"]
+This fixture contains intentionally wrong references for testing.
+
+== External commands (should be scope: external)
+
+[source,terminal]
+----
+$ oc get pods -n example
+$ kubectl apply -f manifest.yaml
+$ sudo systemctl restart example
+----
+
+== In-scope commands with valid flags
+
+[source,terminal]
+----
+$ example-tool deploy --env staging --replicas 2
+----
+
+== In-scope commands with STALE flags
+
+[source,terminal]
+----
+$ example-tool deploy --environment production --count 5
+----
+
+The `--environment` flag was renamed to `--env` and `--count` was renamed to `--replicas`.
+
+== Configuration with stale keys
+
+[source,yaml]
+----
+spec:
+  replicas: 3
+  logLevel: debug
+  maxRetries: 5
+  connectionTimeout: 30
+----
+
+The keys `maxRetries` and `connectionTimeout` do not exist in the schema.
+
+== Configuration with matching keys
+
+[source,json]
+----
+{
+  "host": "0.0.0.0",
+  "port": 9090,
+  "pool_size": 10,
+  "workers": 8
+}
+----
+
+== API references that exist
+
+The `ExampleClient` class provides `list_resources()` for querying.
+
+The `DataProcessor` class calls `processStream()` internally.
+
+== API references that do NOT exist
+
+The `MissingWidget` class was removed in v2.0.
+
+The `deprecatedFunction()` method is no longer available.
+
+== File paths
+
+Existing paths:
+
+* `src/client.py` — the client library
+* `config/defaults.yaml` — default configuration
+
+Renamed paths (basename should match):
+
+* `lib/processor.py` — was moved to `src/processor.py`
+
+Missing paths:
+
+* `src/removed_module.py` — this file was deleted

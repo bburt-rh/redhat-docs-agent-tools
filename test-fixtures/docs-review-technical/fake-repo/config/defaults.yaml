@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ExampleConfig
+metadata:
+  name: default
+spec:
+  replicas: 3
+  logLevel: info
+  storage:
+    type: persistent
+    size: 10Gi
+  networking:
+    port: 8443
+    tls:
+      enabled: true
+      certPath: /etc/pki/tls/certs/example.pem

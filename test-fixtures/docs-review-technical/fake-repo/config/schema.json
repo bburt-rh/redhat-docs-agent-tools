@@ -1,0 +1,15 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "workers": 4
+  },
+  "database": {
+    "url": "postgresql://localhost:5432/mydb",
+    "pool_size": 5
+  },
+  "logging": {
+    "level": "info",
+    "format": "json"
+  }
+}
