@@ -8,7 +8,7 @@
 
 - Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Python packages, system tools)
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies)
 
 - Create an `~/.env` file with your tokens:
 

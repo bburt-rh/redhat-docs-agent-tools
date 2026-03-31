@@ -6,11 +6,9 @@
 
 ## Prerequisites
 
-- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Ruby gems for AsciiDoc skills)
+- Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-- The batch-runner scripts use only the Python standard library and need the `claude` CLI on `$PATH`
-
-- All other skills work directly in Claude Code without additional dependencies
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies)
 
 ## Usage
 

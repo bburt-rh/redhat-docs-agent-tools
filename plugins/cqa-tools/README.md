@@ -10,7 +10,7 @@ Assess, fix, and score Red Hat modular documentation against all 54 CQA 2.1 para
 
 - Install the [Red Hat Docs Agent Tools marketplace](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/)
 
-- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies) (Python 3.9+, Vale CLI)
+- Install [software dependencies](https://redhat-documentation.github.io/redhat-docs-agent-tools/install/#software-dependencies)
 
 - Install [`dita-tools` plugin](https://github.com/redhat-documentation/redhat-docs-agent-tools)
 
