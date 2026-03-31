@@ -31,6 +31,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Scan plugin dependencies
+        run: python scripts/scan_deps.py
+
       - name: Generate plugin docs
         run: python scripts/generate_plugin_docs.py
 
