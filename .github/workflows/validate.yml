@@ -21,3 +21,8 @@ jobs:
 
       - name: Validate script syntax
         run: ./scripts/validate-plugins.sh
+
+      - name: Check deps.json is up to date
+        run: |
+          python scripts/scan_deps.py
+          git diff --exit-code scripts/deps.json
