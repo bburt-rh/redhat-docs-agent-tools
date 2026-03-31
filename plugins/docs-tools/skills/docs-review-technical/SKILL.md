@@ -1,13 +1,15 @@
 ---
-name: docs-review-e2e
-description: End-to-end multi-agent documentation review with confidence scoring. Supports local branch review, PR/MR review with optional inline comment posting, interactive comment actioning, and code-aware technical validation against source code repos. MUST BE USED whenever the user asks to review documentation, check docs quality, validate docs against code, review a PR/MR containing .adoc or .md files, action or address PR review comments, or run a docs review. Also use when the user mentions style guide compliance, modular docs structure, or technical accuracy of documentation.
+name: docs-review-technical
+description: Technical accuracy review and code-aware validation with confidence scoring. Supports local branch review, PR/MR review with optional inline comment posting, interactive comment actioning, and code-aware technical validation against source code repos. MUST BE USED when the user asks to validate documentation against code, check technical accuracy, verify commands/APIs/configs in docs match source code, or run a technical review. Also use when the user provides a --code URL or mentions code-aware review.
 argument-hint: "[--local | --pr <url> [--post-comments] | --action-comments [url]] [--code <url>] [--fix] [--threshold <0-100>]"
 allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch, AskUserQuestion
 ---
 
-# End-to-End Documentation Review
+# Technical Accuracy and Code-Aware Review
 
-A unified multi-agent documentation review with confidence-based scoring and optional code-aware technical validation.
+Multi-agent technical accuracy review with confidence-based scoring and optional code-aware validation against source repositories.
+
+For style guide compliance and modular docs review, use `docs-tools:docs-review-style`.
 
 ## Modes
 
@@ -24,7 +26,7 @@ A unified multi-agent documentation review with confidence-based scoring and opt
 | Option | Description |
 |--------|-------------|
 | `--threshold <0-100>` | Confidence threshold for reporting issues (default: 80) |
-| `--code <url>` | Code repository URL for technical validation (repeatable). Enables Agent 5. |
+| `--code <url>` | Code repository URL for technical validation (repeatable). Enables Agent 2. |
 | `--fix` | Auto-fix high-confidence issues (>=65%), then interactively walk through remaining |
 
 If no arguments are provided, display usage and ask the user to specify a mode.
@@ -108,40 +110,20 @@ Launch a sonnet agent to view changes and return a summary noting:
 For `--pr` mode: `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff "${PR_URL}"`
 For `--local` mode: `git diff "$BASE_BRANCH"...HEAD -- $(cat /tmp/docs-review-doc-files.txt)`
 
-## Step 4: Multi-Agent Parallel Review
-
-Launch agents in parallel. Each agent returns issues with: `file`, `line`, `description`, `reason`, `confidence` (0-100), `severity` (error/warning/suggestion).
-
-For `--pr` mode, use `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract` for deterministic line numbers.
-
-**Important**: The agent files describe a JIRA-based drafts workflow for standalone use. In this context, ignore JIRA/drafts sections — review changed files from the diff and return issues in the format above.
-
-### Agent 1: Style guide compliance (batch A)
-
-- `subagent_type`: `docs-tools:docs-reviewer`
-
-Focus on: `docs-tools:ibm-sg-language-and-grammar`, `docs-tools:ibm-sg-punctuation`, `docs-tools:ibm-sg-structure-and-format`, `docs-tools:ibm-sg-technical-elements`, `docs-tools:rh-ssg-grammar-and-language`, `docs-tools:rh-ssg-formatting`, `docs-tools:rh-ssg-structure`, `docs-tools:rh-ssg-technical-examples`
-
-### Agent 2: Style guide compliance (batch B)
-
-- `subagent_type`: `docs-tools:docs-reviewer`
-
-Focus on: `docs-tools:ibm-sg-audience-and-medium`, `docs-tools:ibm-sg-numbers-and-measurement`, `docs-tools:ibm-sg-references`, `docs-tools:ibm-sg-legal-information`, `docs-tools:rh-ssg-gui-and-links`, `docs-tools:rh-ssg-legal-and-support`, `docs-tools:rh-ssg-accessibility`, `docs-tools:rh-ssg-release-notes`
-
-### Agent 3: Modular docs structure and content quality
-
-- `subagent_type`: `docs-tools:docs-reviewer`
-
-Focus on: `docs-tools:docs-review-modular-docs`, `docs-tools:docs-review-content-quality`. Run Vale once per file if available.
-
-### Agent 4: Technical accuracy and consistency
+## Step 4: Agent 1 — Technical Accuracy and Consistency
 
 - `subagent_type`: `docs-tools:technical-reviewer`
 - `model`: `opus`
 
 Follow the full technical review process: doc type detection, reviewer persona (developer/architect lens), 6 review dimensions, confidence scoring, and output format. Use `docs-tools:jira-reader`, `docs-tools:git-pr-reader`, and `docs-tools:article-extractor` to cross-check technical claims. Do not duplicate style or formatting checks.
 
-### Agent 5: Code-aware technical scan (conditional)
+Returns issues with: `file`, `line`, `description`, `reason`, `confidence` (0-100), `severity` (error/warning/suggestion).
+
+For `--pr` mode, use `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py extract` for deterministic line numbers.
+
+**Important**: The agent file describes a JIRA-based drafts workflow for standalone use. In this context, ignore JIRA/drafts sections — review changed files from the diff and return issues in the format above.
+
+## Step 5: Agent 2 — Code-Aware Technical Scan (conditional)
 
 **Only runs when**: `--code <url>` is provided, or code repos can be auto-discovered from the PR URL, JIRA ticket context, or `:code-repo-url:` AsciiDoc attributes in the changed files.
 
@@ -169,35 +151,9 @@ Workflow:
 
 4. Return issues in the standard format: `file`, `line`, `description`, `reason`, `confidence`, `severity`. Include the code evidence in `reason`.
 
-### Signal quality filter
+## Step 6: Validate Agent 2 Findings
 
-**Flag issues where:**
-- Documentation will actively mislead users (wrong commands, broken examples, incorrect terminology)
-- Required modular docs structure is missing or incorrect
-- Clear, unambiguous style guide violations with a citable rule
-- Accessibility failures (missing alt text, inaccessible tables)
-
-**Do NOT flag:**
-- Minor stylistic preferences that don't affect clarity
-- Potential issues depending on context outside changed files
-- Subjective wording suggestions unless they violate a specific rule
-- Pre-existing issues in unchanged content
-
-Do NOT flag (false positives):
-- Pre-existing issues in unchanged content
-- Something that appears to be a style violation but is an accepted project convention
-- Pedantic nitpicks that a senior technical writer would not flag
-- Issues that Vale will catch automatically (do not run Vale to verify unless the agent has Vale available)
-- General quality concerns (e.g., "could be more concise") unless they violate a specific rule
-- Style suggestions that conflict with existing content in the same document
-- Terminology that matches the product's official naming even if it differs from the style guide
-- Minor stylistic preferences that don't affect clarity
-- Potential issues that depend on context outside the changed files
-- Subjective wording suggestions unless they violate a specific style rule
-
-## Step 5: Validate Agent 5 Findings
-
-Review each issue reported by Agent 5. For each finding:
+Review each issue reported by Agent 2. For each finding:
 
 - Confirm the agent read the actual source file (not just grep output) and the discrepancy is real
 - Confirm the issue is not a test fixture, example, or deprecated path that is intentionally different
@@ -206,38 +162,53 @@ Review each issue reported by Agent 5. For each finding:
 
 Discard findings where the agent could not confirm the discrepancy by reading source code.
 
-## Step 6: Validate Issues
+### Signal quality filter
 
-For each issue from Steps 4-5, launch parallel subagents to validate:
-- Missing short description → verify `[role="_abstract"]` is actually absent
-- Style violation → confirm the specific rule applies and text truly violates it
-- Broken cross-reference → verify the target doesn't exist
-- Terminology error → check it's not an acceptable variant
+**Flag issues where:**
+- Documentation will actively mislead users (wrong commands, broken examples, incorrect terminology)
+- Code examples contain wrong default values, renamed flags, or missing parameters
+- API signatures, return types, or import paths don't match source code
+- Configuration keys or values are stale or incorrect
 
-Use opus subagents for structural/technical issues, sonnet for style violations.
+**Do NOT flag:**
+- "Not found in code" without concrete evidence of a problem
+- Test fixtures, examples, or intentionally different deprecated paths
+- External system commands (sudo, grep, git, etc.) that aren't project-specific
+- Pre-existing issues in unchanged content
+- Minor discrepancies that don't affect functionality
 
-## Step 7: Filter Issues
+## Step 7: Validate All Issues
+
+For each issue from Steps 4-6, launch parallel subagents to validate:
+- Wrong command/flag -> verify the correct command exists in the code
+- Stale API reference -> confirm the API was renamed or removed
+- Broken code example -> verify the example doesn't compile/run as documented
+- Incorrect config value -> confirm the actual default in source
+
+Use opus subagents for structural/technical issues.
+
+## Step 8: Filter Issues
 
 Remove issues that:
-- Were not validated in Step 6
+- Were not validated in Step 7
 - Score below the confidence threshold (default: 80)
 
-## Step 8: Whole-Repo Anti-Pattern Scan (conditional)
+## Step 9: Whole-Repo Anti-Pattern Scan (conditional)
 
-**Only runs when Agent 5 ran.** Catches issues extraction+search may miss.
+**Only runs when Agent 2 ran.** Catches issues extraction+search may miss.
 
 **Scan scope**: `.adoc` and `.md` files in the parent directories of the files listed in `/tmp/docs-review-doc-files.txt`.
 
-**8a: Anti-pattern scan** — For each confirmed issue from Agent 5, use Grep to search the broader doc tree for additional occurrences of the same error pattern (e.g., same wrong flag name, same stale config key, same renamed path).
+**9a: Anti-pattern scan** — For each confirmed issue from Agent 2, use Grep to search the broader doc tree for additional occurrences of the same error pattern (e.g., same wrong flag name, same stale config key, same renamed path).
 
-**8b: Blast radius scan** — For each issue from Step 5, search the doc tree for additional occurrences. Record every file and line.
+**9b: Blast radius scan** — For each issue from Step 6, search the doc tree for additional occurrences. Record every file and line.
 
-## Step 9: Generate Report and Present Results
+## Step 10: Generate Report and Present Results
 
-Write report to `/tmp/docs-review-report.md` using the format below. Output summary to terminal:
+Write report to `/tmp/docs-review-technical-report.md` using the format below. Output summary to terminal:
 
 ```
-## Documentation Review
+## Technical Review
 
 **Source**: <branch vs base | PR/MR URL>
 **Files reviewed**: X documentation files
@@ -245,14 +216,14 @@ Write report to `/tmp/docs-review-report.md` using the format below. Output summ
 
 ### Issues
 
-1. **file.adoc:15** [confidence: 92] — Missing `:_mod-docs-content-type:` attribute (modular-docs)
-2. **file.adoc:42** [confidence: 85] — Use "data center" not "datacenter" (RedHat.TermsErrors)
+1. **file.adoc:23** [confidence: 95] — Flag `--enable-feature` renamed to `--feature-enable` in v2.3 (code-scan)
+2. **file.adoc:67** [confidence: 88] — Default `pool_size` is 5, not 10 (technical-review)
 
 ### Skipped (below threshold)
 
-- **file.adoc:55** [confidence: 60] — Consider using active voice
+- **file.adoc:91** [confidence: 55] — Config key `max_retries` not found in source
 
-Full report saved to: /tmp/docs-review-report.md
+Full report saved to: /tmp/docs-review-technical-report.md
 ```
 
 ### For --local mode: Offer to Apply Changes
@@ -269,14 +240,14 @@ If NO issues found, post a summary comment via `git-pr-reader`:
 
 ```bash
 cat <<'SUMMARY' > /tmp/docs-review-summary.json
-[{"file": "", "line": 0, "message": "## Documentation review\n\nNo issues found. Checked for style guide compliance, modular docs structure, content quality, and technical accuracy.", "severity": "suggestion"}]
+[{"file": "", "line": 0, "message": "## Technical review\n\nNo issues found. Checked for technical accuracy and code-aware validation.", "severity": "suggestion"}]
 SUMMARY
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post "${PR_URL}" /tmp/docs-review-summary.json
 ```
 
-If issues found, continue to Step 10.
+If issues found, continue to Step 11.
 
-## Step 10: Post Inline Comments (--post-comments only)
+## Step 11: Post Inline Comments (--post-comments only)
 
 Get deterministic line numbers:
 ```bash
@@ -288,9 +259,9 @@ Build comments JSON and post:
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py post "${PR_URL}" /tmp/docs-review-comments.json
 ```
 
-For each comment: brief description with style guide rule, include corrected text for small fixes, describe larger fixes without inline code. **Only ONE comment per unique issue.**
+For each comment: brief description with evidence from source code, include corrected values for small fixes, describe larger fixes without inline code. **Only ONE comment per unique issue.**
 
-## Step 10a: Fix Mode (--fix only)
+## Step 11a: Fix Mode (--fix only)
 
 **Phase A — Auto-fix**: For each issue with confidence >=65%, apply the fix using the Edit tool.
 
@@ -362,14 +333,14 @@ When approved: Read target file, apply Edit, confirm, move to next.
 | Bot comments filtered | N |
 ```
 
-Categorize comments: **Required** (style violations, errors — must fix), **Suggestion** (improvements — user discretion), **Question** (needs discussion), **Outdated** (already addressed — skip).
+Categorize comments: **Required** (technical errors — must fix), **Suggestion** (improvements — user discretion), **Question** (needs discussion), **Outdated** (already addressed — skip).
 
 ---
 
 # Report Format
 
 ```markdown
-# Documentation Review Report
+# Technical Review Report
 
 **Source**: [Branch: <branch> vs <base> | PR/MR URL]
 **Date**: YYYY-MM-DD
@@ -389,27 +360,12 @@ Categorize comments: **Required** (style violations, errors — must fix), **Sug
 
 **Type**: CONCEPT | PROCEDURE | REFERENCE | ASSEMBLY
 
-#### Vale Linting
+#### Technical Accuracy
 
-| Line | Severity | Rule | Message |
-|------|----------|------|---------|
+| Line | Severity | Issue | Evidence |
+|------|----------|-------|----------|
 
-#### Structure Review
-
-| Line | Severity | Issue |
-|------|----------|-------|
-
-#### Language Review
-
-| Line | Severity | Issue |
-|------|----------|-------|
-
-#### Elements Review
-
-| Line | Severity | Issue |
-|------|----------|-------|
-
-#### Code Validation (if Agent 5 ran)
+#### Code Validation (if Agent 2 ran)
 
 | Line | Severity | Issue | Evidence |
 |------|----------|-------|----------|
@@ -420,11 +376,11 @@ Show specific value mismatches (e.g., "Docs: pool_size=10, Code: pool_size=5"), 
 
 ## Required Changes
 
-1. **file.adoc:15** — Description
+1. **file.adoc:23** — Description (evidence)
 
 ## Suggestions
 
-1. **file.adoc:55** — Description
+1. **file.adoc:91** — Description
 
 ---
 
@@ -438,9 +394,9 @@ Show specific value mismatches (e.g., "Docs: pool_size=10, Code: pool_size=5"), 
 ## Feedback Guidelines
 
 - **In scope**: Content changed in the branch or PR/MR. **Out of scope**: Unchanged content, enhancement requests.
-- **Required** (blocks merging): Typos, modular docs violations, style guide violations.
-- **Optional** (does not block): Wording improvements, reorganization, stylistic preferences. Mark with **[SUGGESTION]**.
-- Cite specific style guide rules. Use softening language for suggestions. For recurring issues: "[GLOBAL] This issue occurs elsewhere."
+- **Required** (blocks merging): Incorrect commands, wrong API references, broken code examples, stale config values.
+- **Optional** (does not block): Minor accuracy improvements, additional context. Mark with **[SUGGESTION]**.
+- Include source code evidence for each issue. For recurring issues: "[GLOBAL] This issue occurs elsewhere."
 
 ---
 
@@ -449,8 +405,7 @@ Show specific value mismatches (e.g., "Docs: pool_size=10, Code: pool_size=5"), 
 - Always use `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py` for all Git platform interactions (see `docs-tools:git-pr-reader` for full API reference)
 - Always use `git_pr_reader.py extract` for deterministic line numbers — never estimate or guess
 - Use Bash with heredoc/cat for writing /tmp files (not the Write tool)
-- Cite the specific style guide rule or review skill for each issue
+- Include source code evidence in each issue's `reason` field
 - Comments are posted under YOUR username using tokens from `~/.env`
-- For .adoc files, modular docs compliance uses `docs-tools:docs-review-modular-docs`
-- Release notes skills only apply to .adoc files that appear to be release notes
-- Vale linting requires Vale to be installed and configured
+- The `code_scanner.py` script is co-located in `scripts/` for Agent 2's reference extraction
+- Vale linting is NOT part of the technical review — use `docs-tools:docs-review-style` for that
