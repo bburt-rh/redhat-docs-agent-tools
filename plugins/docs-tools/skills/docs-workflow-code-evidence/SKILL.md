@@ -1,6 +1,6 @@
 ---
 name: docs-workflow-code-evidence
-description: Retrieve code evidence from a source repository to ground documentation in actual implementation. Indexes the codebase using AST chunking and hybrid search, then retrieves relevant code snippets for each topic in the documentation plan. Requires vibe2doc to be available locally.
+description: Retrieve code evidence from a source repository to ground documentation in actual implementation. Indexes the codebase using AST chunking and hybrid search, then retrieves relevant code snippets for each topic in the documentation plan. Uses two-pass retrieval — source-scoped for API accuracy, unfiltered for README/narrative context. Requires vibe2doc to be available locally.
 argument-hint: <ticket> --base-path <path> --repo <code-repo-path> [--reindex] [--limit N]
 allowed-tools: Read, Write, Glob, Grep, Bash
 ---
@@ -60,7 +60,18 @@ Validate:
 - Verify `$PLAN_FILE` exists. If not, STOP with error: "Planning step must complete before code-evidence."
 - Verify `$VIBE2DOC/src/claude_context/skills/evidence_retrieval.py` exists. If not, STOP with error: "vibe2doc not found at $VIBE2DOC. Set VIBE2DOC_PATH or pass --vibe2doc-path."
 
-### 2. Extract topics from the plan
+### 2. Detect source directories
+
+Before running queries, identify the repository's source code directories for the filtered pass. Look for common patterns:
+
+- `src/`, `lib/`, `pkg/`, `cmd/`, `internal/`, `app/`
+- Language-specific: `src/<project_name>/` (Python), `src/main/` (Java/Kotlin)
+
+If a PR URL is available in the requirements step output, extract changed file paths and derive their parent directories as the filter scope.
+
+Store the detected source paths for use in step 3.
+
+### 3. Extract topics from the plan
 
 Read `$PLAN_FILE` and extract the key topics to search for. Look for:
 
@@ -71,9 +82,11 @@ Read `$PLAN_FILE` and extract the key topics to search for. Look for:
 
 Produce a list of 5-15 natural language search queries that cover the plan's scope. Each query should be specific enough to retrieve relevant code (e.g., "authentication middleware implementation" not "auth").
 
-### 3. Run evidence retrieval for each topic
+### 4. Run two-pass evidence retrieval for each topic
 
-For each search query, run vibe2doc's evidence retrieval:
+For each search query, run vibe2doc's evidence retrieval **twice** to capture both accurate source code and narrative context:
+
+**Pass 1 — Source-scoped** (API accuracy):
 
 ```bash
 cd "$VIBE2DOC" && source venv_langraph/bin/activate && \
@@ -81,11 +94,28 @@ PYTHONPATH=src python -m claude_context.skills.evidence_retrieval \
   --repo <REPO_PATH> \
   --query "<search_query>" \
   --limit <LIMIT> \
-  --base-path "$OUTPUT_DIR" \
-  --ticket <TICKET>
+  --filter-paths <SOURCE_DIRS>
 ```
 
-If this is the first query, omit `--base-path` and capture the JSON output directly. The first run will index the repo (1-3 minutes). Subsequent queries reuse the cached index.
+Where `<SOURCE_DIRS>` is the comma-separated list of source directories detected in step 2 (e.g., `src/speculators`).
+
+This pass returns function signatures, class definitions, and implementation details scoped to actual source code.
+
+**Pass 2 — Unfiltered** (narrative context):
+
+```bash
+cd "$VIBE2DOC" && source venv_langraph/bin/activate && \
+PYTHONPATH=src python -m claude_context.skills.evidence_retrieval \
+  --repo <REPO_PATH> \
+  --query "<search_query>" \
+  --limit <LIMIT>
+```
+
+This pass picks up READMEs, documentation, examples, and configuration files that provide the "why", installation steps, quickstart patterns, and architectural context.
+
+**Note on indexing**: The index is built once on the first query and cached at `{repo}/.vibe2doc/index.db`. Both passes and all subsequent queries reuse the cached index. The second pass adds ~30-200ms per query, not a full re-index.
+
+If `--reindex` is specified, add it to the **first** query only. Subsequent queries reuse the freshly built index.
 
 Collect all results into a combined evidence structure:
 
@@ -96,7 +126,8 @@ Collect all results into a combined evidence structure:
   "topics": [
     {
       "query": "authentication middleware implementation",
-      "results": [ ... ]
+      "source_results": [ ... ],
+      "context_results": [ ... ]
     }
   ],
   "index_info": { ... }
@@ -105,7 +136,7 @@ Collect all results into a combined evidence structure:
 
 Write this to `$EVIDENCE_FILE`.
 
-### 4. Generate evidence summary
+### 5. Generate evidence summary
 
 Create a human-readable markdown summary at `$SUMMARY_FILE` with:
 
@@ -115,12 +146,19 @@ Create a human-readable markdown summary at `$SUMMARY_FILE` with:
 **Ticket:** <TICKET>
 **Repository:** <REPO_PATH>
 **Topics searched:** <N>
-**Total code snippets found:** <N>
+**Total code snippets found:** <N> (source: <N>, context: <N>)
 
 ## Topics
 
 ### 1. <query>
+
+**Source code:**
 - **<file_path>:<start_line>-<end_line>** — `<function_name>` (<chunk_type>)
+  Score: <combined_score>
+- ...
+
+**Context (READMEs, docs, examples):**
+- **<file_path>:<start_line>-<end_line>** — `<section_name>` (<chunk_type>)
   Score: <combined_score>
 - ...
 
@@ -130,7 +168,7 @@ Create a human-readable markdown summary at `$SUMMARY_FILE` with:
 
 This summary is for human review. The JSON file is what downstream steps consume.
 
-### 5. Verify output
+### 6. Verify output
 
 After completion, verify that both `$EVIDENCE_FILE` and `$SUMMARY_FILE` exist.
 
@@ -138,20 +176,22 @@ After completion, verify that both `$EVIDENCE_FILE` and `$SUMMARY_FILE` exist.
 
 The **writing step** can reference the evidence to ground documentation in actual code:
 
-> The code evidence at `<base-path>/code-evidence/evidence.json` contains relevant source code snippets indexed from the repository. Use these to:
-> - Include accurate function signatures and parameter types
-> - Reference correct file paths and module structure
-> - Ground explanations in actual implementation details
-> - Provide realistic code examples based on real usage patterns
+> The code evidence at `<base-path>/code-evidence/evidence.json` contains two types of evidence per topic:
+> - **`source_results`**: Accurate function signatures, parameter types, class structure from source code. Use these for API references, code examples, and technical accuracy.
+> - **`context_results`**: README content, documentation, examples. Use these for narrative flow, installation instructions, quickstart guides, and architectural context.
+>
+> Prefer source_results for "what the code does" and context_results for "why and how to use it."
 
 The **technical review step** can use it to verify claims:
 
-> Cross-reference documentation claims against the code evidence at `<base-path>/code-evidence/evidence.json`. Flag any claims that contradict the retrieved source code.
+> Cross-reference documentation claims against the code evidence at `<base-path>/code-evidence/evidence.json`. Use `source_results` to verify function signatures, parameters, and return types. Flag any claims that contradict the retrieved source code.
 
 ## Notes
 
-- First run on a repo takes 1-3 minutes to build the index (AST chunking + embeddings)
+- First run on a repo takes a few seconds to a few minutes depending on repo size (AST chunking + embeddings)
 - Subsequent runs reuse the cached index at `{repo}/.vibe2doc/index.db`
 - Use `--reindex` after significant code changes
 - The index is deterministic — same code produces the same index
 - Evidence retrieval uses hybrid search: BM25 for exact keyword matches + vector search for semantic similarity
+- Default index exclusions skip `archive/`, `vendor/`, `node_modules/`, `docs/generated/`, `.vibe2doc/`, and other non-source directories
+- The two-pass approach adds negligible overhead (~30-200ms per query) since both passes reuse the same cached index
