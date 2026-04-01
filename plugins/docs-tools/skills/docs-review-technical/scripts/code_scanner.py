@@ -161,6 +161,7 @@ class Extractor:
                     code_delim = delim
                     block = {
                         "file": fpath, "line": line_num,
+                        "content_start_line": line_num + (2 if skip_next else 1),
                         "language": lang, "content": [],
                         "context": block_title or heading,
                     }
@@ -177,6 +178,7 @@ class Extractor:
                     code_delim = delim
                     block = {
                         "file": fpath, "line": line_num,
+                        "content_start_line": line_num + (2 if skip_next else 1),
                         "language": lang, "content": [],
                         "context": block_title or heading,
                     }
@@ -189,6 +191,7 @@ class Extractor:
                     code_delim = "```"
                     block = {
                         "file": fpath, "line": line_num,
+                        "content_start_line": line_num + 1,
                         "language": lang, "content": [],
                         "context": block_title or heading,
                     }
@@ -199,6 +202,7 @@ class Extractor:
                     code_delim = line
                     block = {
                         "file": fpath, "line": line_num,
+                        "content_start_line": line_num + 1,
                         "language": "text", "content": [],
                         "context": block_title or heading,
                     }
@@ -264,15 +268,16 @@ class Extractor:
         content = block["content"]
         lang = block.get("language", "text")
         ctx = block.get("context")
-        line_num = block["line"]
+        content_start = block.get("content_start_line", block["line"])
+        content_lines = content.splitlines()
 
         # Commands from code block lines
-        for cline in content.splitlines():
+        for offset, cline in enumerate(content_lines):
             m = RE_COMMAND_LINE_CODE.match(cline.strip())
             if m:
                 prompt = "root" if cline.lstrip().startswith("#") else "user"
                 self.refs["commands"].append({
-                    "file": fpath, "line": line_num,
+                    "file": fpath, "line": content_start + offset,
                     "command": m.group(1).strip(),
                     "prompt_type": prompt, "context": ctx,
                 })
@@ -282,23 +287,25 @@ class Extractor:
             name = m.group(1)
             if len(name) < 3 or name.lower() in SKIP_FUNCTIONS:
                 continue
+            hit_offset = content[:m.start()].count("\n")
             self.refs["apis"].append({
-                "file": fpath, "line": line_num,
+                "file": fpath, "line": content_start + hit_offset,
                 "type": "function", "name": name,
                 "language": lang, "context": ctx,
             })
 
         # Class definitions
         for m in RE_CLASS_DEF.finditer(content):
+            hit_offset = content[:m.start()].count("\n")
             self.refs["apis"].append({
-                "file": fpath, "line": line_num,
+                "file": fpath, "line": content_start + hit_offset,
                 "type": "class", "name": m.group(1),
                 "language": lang, "context": ctx,
             })
 
         # Config keys from YAML/JSON/TOML
         if lang.lower() in ("yaml", "yml", "json", "toml"):
-            self._extract_config_keys(content, fpath, line_num, lang, ctx)
+            self._extract_config_keys(content, fpath, content_start, lang, ctx)
 
     def _extract_config_keys(self, content: str, fpath: str, line_num: int, fmt: str, ctx):
         keys = []
