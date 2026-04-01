@@ -1,7 +1,7 @@
 ---
 name: docs-workflow-code-evidence
-description: Retrieve code evidence from a source repository to ground documentation in actual implementation. Indexes the codebase using AST chunking and hybrid search, then retrieves relevant code snippets for each topic in the documentation plan. Uses two-pass retrieval — source-scoped for API accuracy, unfiltered for README/narrative context. Requires vibe2doc to be available locally.
-argument-hint: <ticket> --base-path <path> --repo <code-repo-path> [--reindex] [--limit N]
+description: Retrieve code evidence from a source repository to ground documentation in actual implementation. Clones the code repo if needed (from PR URL), indexes using AST chunking and hybrid search, then retrieves relevant code snippets for each topic in the documentation plan. Uses two-pass retrieval — source-scoped for API accuracy, unfiltered for README/narrative context. Requires code-finder to be pip-installed.
+argument-hint: <ticket> --base-path <path> [--repo <code-repo-path>] [--reindex] [--limit N]
 allowed-tools: Read, Write, Glob, Grep, Bash
 ---
 
@@ -9,19 +9,21 @@ allowed-tools: Read, Write, Glob, Grep, Bash
 
 Step skill for the docs-orchestrator pipeline. Follows the step skill contract: **parse args → run tool → write output**.
 
-This skill bridges vibe2doc's code analysis capabilities into the docs-orchestrator workflow. It indexes a source code repository using AST chunking and hybrid search (BM25 + vector), then retrieves code snippets relevant to the documentation plan topics. The writer step can then use this evidence to ground its output in actual implementation details.
+This skill bridges code-finder's code analysis capabilities into the docs-orchestrator workflow. It indexes a source code repository using AST chunking and hybrid search (BM25 + vector), then retrieves code snippets relevant to the documentation plan topics. The writer step can then use this evidence to ground its output in actual implementation details.
+
+The writer typically works from the **documentation repository**, not the code repository. This skill handles cloning the code repo from the PR URL when needed.
 
 ## Prerequisites
 
-- **vibe2doc** must be cloned locally with its virtual environment set up
-- Set the `VIBE2DOC_PATH` environment variable to the vibe2doc root directory, or pass `--vibe2doc-path` as an argument
-- The vibe2doc virtual environment must have dependencies installed (`pymilvus`, `sentence-transformers`, `rank-bm25`, `tree-sitter`)
+- **code-finder** must be pip-installed: `pip install code-finder`
+- `git` must be available for cloning code repositories
+- `gh` CLI is recommended for private repos (uses GitHub auth)
 
 ## Arguments
 
 - `$1` — JIRA ticket ID (required)
 - `--base-path <path>` — Base output path (e.g., `.claude/docs/proj-123`)
-- `--repo <path>` — Path to the source code repository to index and search
+- `--repo <path>` — Path to a local clone of the source code repository (optional — if omitted, the skill clones the repo from the PR URL in the requirements output)
 - `--reindex` — Force re-indexing even if a cached index exists
 - `--limit <N>` — Max results per topic (default: 5)
 
@@ -29,6 +31,7 @@ This skill bridges vibe2doc's code analysis capabilities into the docs-orchestra
 
 ```
 <base-path>/planning/plan.md
+<base-path>/requirements/requirements.md   (for PR URL when --repo is not provided)
 ```
 
 ## Output
@@ -36,13 +39,14 @@ This skill bridges vibe2doc's code analysis capabilities into the docs-orchestra
 ```
 <base-path>/code-evidence/evidence.json
 <base-path>/code-evidence/summary.md
+<base-path>/code-repo/                     (cloned repo, if not provided via --repo)
 ```
 
 ## Execution
 
 ### 1. Parse arguments
 
-Extract the ticket ID, `--base-path`, `--repo`, and optional flags from the args string.
+Extract the ticket ID, `--base-path`, `--repo` (optional), and optional flags from the args string.
 
 Set the paths:
 
@@ -51,27 +55,69 @@ PLAN_FILE="${BASE_PATH}/planning/plan.md"
 OUTPUT_DIR="${BASE_PATH}/code-evidence"
 EVIDENCE_FILE="${OUTPUT_DIR}/evidence.json"
 SUMMARY_FILE="${OUTPUT_DIR}/summary.md"
-VIBE2DOC="${VIBE2DOC_PATH:-$HOME/Documents/PROJECTS/vibe2doc_withAgents}"
+CLONE_DIR="${BASE_PATH}/code-repo"
 mkdir -p "$OUTPUT_DIR"
 ```
 
 Validate:
-- `--repo` is required. If missing, STOP and ask the user.
 - Verify `$PLAN_FILE` exists. If not, STOP with error: "Planning step must complete before code-evidence."
-- Verify `$VIBE2DOC/src/claude_context/skills/evidence_retrieval.py` exists. If not, STOP with error: "vibe2doc not found at $VIBE2DOC. Set VIBE2DOC_PATH or pass --vibe2doc-path."
+- Verify `code-finder-evidence` is available (i.e., code-finder is pip-installed). If not, STOP with error: "code-finder not installed. Run: pip install code-finder"
 
-### 2. Detect source directories
+### 2. Ensure code repo is available
 
-Before running queries, identify the repository's source code directories for the filtered pass. Look for common patterns:
+If `--repo <path>` was provided:
+- Verify the path exists and is a directory
+- If not, STOP with error: "Repo path does not exist: <path>"
+- Set `REPO_PATH` to the provided path
+
+If `--repo` was NOT provided:
+- Check if `$CLONE_DIR` already exists (from a previous run). If so, reuse it and set `REPO_PATH="${CLONE_DIR}"`.
+- If not, extract the repo URL from the requirements step output:
+
+  ```bash
+  # Read requirements output for PR URL
+  REQUIREMENTS_FILE="${BASE_PATH}/requirements/requirements.md"
+  ```
+
+  Extract the git clone URL from the PR URL. For GitHub PRs:
+
+  ```bash
+  # From PR URL like https://github.com/org/repo/pull/123
+  # Derive: https://github.com/org/repo.git
+  REPO_URL=$(echo "$PR_URL" | sed 's|/pull/[0-9]*||').git
+  ```
+
+  Or use `gh` for private repos:
+
+  ```bash
+  REPO_URL=$(gh pr view "$PR_URL" --json headRepository --jq '.headRepository.url')
+  ```
+
+  Clone the repo (shallow — file contents are sufficient, git history is not needed):
+
+  ```bash
+  git clone --depth 1 "$REPO_URL" "$CLONE_DIR"
+  ```
+
+  If the clone fails, STOP with a clear error:
+  - **Auth failure**: "Cannot clone <REPO_URL>. For private repos, ensure `gh` is authenticated or provide `--repo <local_path>`."
+  - **Bad URL**: "Could not extract repo URL from PR. Provide `--repo <local_path>` explicitly."
+  - **Network error**: "Clone failed for <REPO_URL>. Check network connectivity."
+
+  Set `REPO_PATH="${CLONE_DIR}"`.
+
+### 3. Detect source directories
+
+Identify the repository's source code directories for the filtered pass. Look for common patterns:
 
 - `src/`, `lib/`, `pkg/`, `cmd/`, `internal/`, `app/`
 - Language-specific: `src/<project_name>/` (Python), `src/main/` (Java/Kotlin)
 
 If a PR URL is available in the requirements step output, extract changed file paths and derive their parent directories as the filter scope.
 
-Store the detected source paths for use in step 3.
+Store the detected source paths for use in step 4.
 
-### 3. Extract topics from the plan
+### 4. Extract topics from the plan
 
 Read `$PLAN_FILE` and extract the key topics to search for. Look for:
 
@@ -82,31 +128,29 @@ Read `$PLAN_FILE` and extract the key topics to search for. Look for:
 
 Produce a list of 5-15 natural language search queries that cover the plan's scope. Each query should be specific enough to retrieve relevant code (e.g., "authentication middleware implementation" not "auth").
 
-### 4. Run two-pass evidence retrieval for each topic
+### 5. Run two-pass evidence retrieval for each topic
 
-For each search query, run vibe2doc's evidence retrieval **twice** to capture both accurate source code and narrative context:
+For each search query, run code-finder's evidence retrieval **twice** to capture both accurate source code and narrative context:
 
 **Pass 1 — Source-scoped** (API accuracy):
 
 ```bash
-cd "$VIBE2DOC" && source venv_langraph/bin/activate && \
-PYTHONPATH=src python -m claude_context.skills.evidence_retrieval \
-  --repo <REPO_PATH> \
+code-finder-evidence \
+  --repo "$REPO_PATH" \
   --query "<search_query>" \
   --limit <LIMIT> \
   --filter-paths <SOURCE_DIRS>
 ```
 
-Where `<SOURCE_DIRS>` is the comma-separated list of source directories detected in step 2 (e.g., `src/speculators`).
+Where `<SOURCE_DIRS>` is the comma-separated list of source directories detected in step 3 (e.g., `src/speculators`). Filter paths are resolved relative to the repo path automatically.
 
 This pass returns function signatures, class definitions, and implementation details scoped to actual source code.
 
 **Pass 2 — Unfiltered** (narrative context):
 
 ```bash
-cd "$VIBE2DOC" && source venv_langraph/bin/activate && \
-PYTHONPATH=src python -m claude_context.skills.evidence_retrieval \
-  --repo <REPO_PATH> \
+code-finder-evidence \
+  --repo "$REPO_PATH" \
   --query "<search_query>" \
   --limit <LIMIT>
 ```
@@ -136,7 +180,7 @@ Collect all results into a combined evidence structure:
 
 Write this to `$EVIDENCE_FILE`.
 
-### 5. Generate evidence summary
+### 6. Generate evidence summary
 
 Create a human-readable markdown summary at `$SUMMARY_FILE` with:
 
@@ -168,7 +212,7 @@ Create a human-readable markdown summary at `$SUMMARY_FILE` with:
 
 This summary is for human review. The JSON file is what downstream steps consume.
 
-### 6. Verify output
+### 7. Verify output
 
 After completion, verify that both `$EVIDENCE_FILE` and `$SUMMARY_FILE` exist.
 
@@ -195,3 +239,5 @@ The **technical review step** can use it to verify claims:
 - Evidence retrieval uses hybrid search: BM25 for exact keyword matches + vector search for semantic similarity
 - Default index exclusions skip `archive/`, `vendor/`, `node_modules/`, `docs/generated/`, `.vibe2doc/`, and other non-source directories
 - The two-pass approach adds negligible overhead (~30-200ms per query) since both passes reuse the same cached index
+- Shallow clone (`--depth 1`) is sufficient — code-finder indexes file contents, not git history
+- The cloned repo is cached at `<base-path>/code-repo/` and reused on resume
