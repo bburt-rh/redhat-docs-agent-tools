@@ -62,14 +62,14 @@ reviews:
       - name: "Skill and Script Conventions"
         mode: error
         instructions: |
-          ## Fully qualified skill names
-          All skill references must use fully qualified `plugin:skill` names everywhere:
-          agent frontmatter, Skill tool invocations, inline text references, cross-references.
+          ## Bare skill names
+          Skill references must use bare names (no `plugin:` prefix). Qualified names are
+          only needed to disambiguate when two plugins share the same skill name.
 
-          Good: `docs-tools:jira-reader`, `docs-tools:rh-ssg-formatting`, `vale-tools:lint-with-vale`
-          Bad: `jira-reader` (missing prefix), `/jira-reader --issue PROJ-123` (old slash-command syntax)
+          Good: `jira-reader`, `rh-ssg-formatting`, `lint-with-vale`
+          Bad: `docs-tools:jira-reader` (unnecessary prefix), `/jira-reader --issue PROJ-123` (old slash-command syntax)
 
-          Flag any skill reference missing the `plugin:` prefix or using old slash-command syntax.
+          Flag any skill reference using a `plugin:` prefix or old slash-command syntax.
 
           ## Script invocation patterns
           Skills calling co-located scripts must use relative paths:
@@ -79,7 +79,7 @@ reviews:
           - `python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py`
 
           Knowledge-only skills (checklists, review rules) must use `Skill:` pseudocode:
-          - `Skill: docs-tools:rh-ssg-formatting, args: "review path/to/file.adoc"`
+          - `Skill: rh-ssg-formatting, args: "review path/to/file.adoc"`
 
           Flag any mismatch between script invocation pattern and context.
 

@@ -6,11 +6,11 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Task, WebSearch, WebFetch
 
 ## Name
 
-docs-tools:docs-workflow
+docs-workflow
 
 ## Synopsis
 
-`/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]`
+`/docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]`
 
 ## Description
 
@@ -136,7 +136,7 @@ done
 # Validate ticket is provided
 if [[ -z "$TICKET" ]]; then
     echo "ERROR: Ticket identifier is required."
-    echo "Usage: /docs-tools:docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--mkdocs] [--draft] [--create-jira <PROJECT>]"
+    echo "Usage: /docs-workflow [start|resume|status] <TICKET> [--pr <url>] [--mkdocs] [--draft] [--create-jira <PROJECT>]"
     exit 1
 fi
 
@@ -340,7 +340,7 @@ Load the existing state file and add any new `--pr` URLs:
 ```bash
 test -f "$STATE_FILE" || {
     echo "No workflow found for ${TICKET}."
-    echo "Use: /docs-tools:docs-workflow start ${TICKET}"
+    echo "Use: /docs-workflow start ${TICKET}"
     exit 1
 }
 
@@ -527,7 +527,7 @@ The following sections define the exact prompt to pass to the Agent tool for eac
 ### Stage 1: Requirements (requirements-analyst)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:requirements-analyst`
+- `subagent_type`: `requirements-analyst`
 - `description`: `Analyze requirements for <TICKET>`
 
 **Output file path:**
@@ -566,7 +566,7 @@ ls -t "${CLAUDE_DOCS_DIR}/requirements/"*.md 2>/dev/null | head -1
 ### Stage 2: Planning (docs-planner)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-planner`
+- `subagent_type`: `docs-planner`
 - `description`: `Create documentation plan for <TICKET>`
 
 **Output file path:**
@@ -613,7 +613,7 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 DRAFT_MODE=$(jq -r '.options.draft // false' "$STATE_FILE")
 ```
 
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-writer`
 
 - **If `OUTPUT_FORMAT` is `adoc`** (default):
   - `description`: `Write AsciiDoc documentation for <TICKET>`
@@ -748,7 +748,7 @@ After the agent completes, verify the index file exists at `<DRAFTS_DIR>/_index.
 The technical reviewer checks documentation for technical accuracy: code examples, prerequisites, commands, failure paths, and architectural coherence. The writer and technical reviewer iterate until the technical review passes.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:technical-reviewer`
+- `subagent_type`: `technical-reviewer`
 - `description`: `Technical review of documentation for <TICKET>`
 
 **Output path:**
@@ -798,7 +798,7 @@ ITERATIONS=$(jq '.stages.technical_review.iterations' "$STATE_FILE")
 
 **Writer fix prompt (for iteration):**
 
-Launch the `docs-tools:docs-writer` agent with this prompt:
+Launch the `docs-writer` agent with this prompt:
 
 > The technical reviewer found issues in the documentation for ticket `<TICKET>`.
 >
@@ -817,7 +817,7 @@ Launch the `docs-tools:docs-writer` agent with this prompt:
 ### Stage 5: Style Review (docs-reviewer)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-reviewer`
+- `subagent_type`: `docs-reviewer`
 - `description`: `Review documentation for <TICKET>`
 
 **Output path:**
@@ -847,12 +847,12 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > **Edit files in place** at their repo locations. Do NOT create copies in a separate folder.
 >
 > For each .adoc file:
-> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 1. Run Vale linting once (use the `lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
->    - Red Hat docs: docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
->    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
->    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility, docs-tools:rh-ssg-release-notes (if applicable)
+>    - Red Hat docs: docs-review-modular-docs, docs-review-content-quality
+>    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
+>    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes (if applicable)
 > 4. Skip ambiguous issues that require broader context
 >
 > Save the review report to: `<DRAFTS_DIR>/_review_report.md`
@@ -875,12 +875,12 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > **Edit files in place** in the drafts folder. Do NOT create copies in a separate folder.
 >
 > For each .adoc file:
-> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 1. Run Vale linting once (use the `lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
->    - Red Hat docs: docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
->    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
->    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility, docs-tools:rh-ssg-release-notes (if applicable)
+>    - Red Hat docs: docs-review-modular-docs, docs-review-content-quality
+>    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
+>    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes (if applicable)
 > 4. Skip ambiguous issues that require broader context
 >
 > Save the review report to: `<DRAFTS_DIR>/_review_report.md`
@@ -903,12 +903,12 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > **Edit files in place** at their repo locations. Do NOT create copies in a separate folder.
 >
 > For each .md file:
-> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 1. Run Vale linting once (use the `lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
->    - Content quality: docs-tools:docs-review-content-quality
->    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
->    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility
+>    - Content quality: docs-review-content-quality
+>    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
+>    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility
 > 4. Skip ambiguous issues that require broader context
 >
 > Save the review report to: `<DRAFTS_DIR>/_review_report.md`
@@ -930,12 +930,12 @@ OUTPUT_FORMAT=$(jq -r '.options.format // "adoc"' "$STATE_FILE")
 > **Edit files in place** in the drafts folder. Do NOT create copies in a separate folder.
 >
 > For each .md file:
-> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 1. Run Vale linting once (use the `lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
->    - Content quality: docs-tools:docs-review-content-quality
->    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
->    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility
+>    - Content quality: docs-review-content-quality
+>    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
+>    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility
 > 4. Skip ambiguous issues that require broader context
 >
 > Save the review report to: `<DRAFTS_DIR>/_review_report.md`
@@ -1287,7 +1287,7 @@ If any stage fails due to access issues (JIRA, GitHub, GitLab):
 4. **Mark the stage as failed** in the state file
 5. **Await user action** — User must fix credentials and resume with:
    ```
-   /docs-tools:docs-workflow resume <TICKET>
+   /docs-workflow resume <TICKET>
    ```
 6. **NEVER guess or infer** — No assumptions about ticket or PR content
 
@@ -1299,57 +1299,57 @@ If JIRA access fails and the workflow proceeded anyway, it would make assumption
 
 Start a new workflow (creates branch, writes directly to repo):
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123
+/docs-workflow start RHAISTRAT-123
 ```
 
 Start with a related PR/MR:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
+/docs-workflow start RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
 ```
 
 Start with a GitLab MR:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --pr https://gitlab.com/org/repo/-/merge_requests/789
+/docs-workflow start RHAISTRAT-123 --pr https://gitlab.com/org/repo/-/merge_requests/789
 ```
 
 Start in draft mode (staging area, no branch):
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --draft
+/docs-workflow start RHAISTRAT-123 --draft
 ```
 
 Check workflow status:
 ```bash
-/docs-tools:docs-workflow status RHAISTRAT-123
+/docs-workflow status RHAISTRAT-123
 ```
 
 Resume and add a PR URL:
 ```bash
-/docs-tools:docs-workflow resume RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
+/docs-workflow resume RHAISTRAT-123 --pr https://github.com/org/repo/pull/456
 ```
 
 Start with MkDocs Markdown output:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --mkdocs
+/docs-workflow start RHAISTRAT-123 --mkdocs
 ```
 
 Start with MkDocs format and a related PR:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --mkdocs --pr https://github.com/org/repo/pull/456
+/docs-workflow start RHAISTRAT-123 --mkdocs --pr https://github.com/org/repo/pull/456
 ```
 
 Start with JIRA creation in INFERENG project:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --create-jira INFERENG
+/docs-workflow start RHAISTRAT-123 --create-jira INFERENG
 ```
 
 Add JIRA creation on resume (after review completes):
 ```bash
-/docs-tools:docs-workflow resume RHAISTRAT-123 --create-jira INFERENG
+/docs-workflow resume RHAISTRAT-123 --create-jira INFERENG
 ```
 
 Draft mode with MkDocs:
 ```bash
-/docs-tools:docs-workflow start RHAISTRAT-123 --draft --mkdocs
+/docs-workflow start RHAISTRAT-123 --draft --mkdocs
 ```
 
 ## Prerequisites
@@ -1375,4 +1375,4 @@ Draft mode with MkDocs:
 - The created JIRA description contains three sections from the documentation plan (JTBD, workflow context, contacts), with the full docs plan attached for private projects only
 - For **public projects**, the detailed docs plan is NOT attached to the JIRA ticket. Project visibility is determined by making an unauthenticated curl request to the JIRA project endpoint — HTTP 200 means public, any other status means private
 - The JIRA description is converted from markdown to JIRA wiki markup before submission, and the JSON payload is built using Python and passed via `--data @file` to avoid shell interpolation issues with large descriptions
-- The `--mkdocs` flag switches output from AsciiDoc to Material for MkDocs Markdown. The same agents are used — the writing and review prompts adapt to produce `.md` files with MkDocs conventions. The review stage omits `docs-tools:docs-review-modular-docs` checks (AsciiDoc-specific) and uses `docs-tools:docs-review-content-quality` plus IBM/Red Hat style guide skills
+- The `--mkdocs` flag switches output from AsciiDoc to Material for MkDocs Markdown. The same agents are used — the writing and review prompts adapt to produce `.md` files with MkDocs conventions. The review stage omits `docs-review-modular-docs` checks (AsciiDoc-specific) and uses `docs-review-content-quality` plus IBM/Red Hat style guide skills

@@ -2,7 +2,7 @@
 name: docs-writer
 description: Use PROACTIVELY when writing or drafting documentation. Creates complete CONCEPT, PROCEDURE, REFERENCE, and ASSEMBLY modules in AsciiDoc (default) or Material for MkDocs Markdown format. MUST BE USED for any documentation writing, drafting, or content creation task.
 tools: Read, Write, Glob, Grep, Edit, Bash, Skill
-skills: docs-tools:jira-reader, vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
+skills: jira-reader, lint-with-vale, docs-review-modular-docs, docs-review-content-quality
 ---
 
 # Your role
@@ -368,14 +368,14 @@ cat ${DOCS_GUIDELINES_PATH:-$HOME/docs-guidelines}/rh-supplementary/markdown/glo
 
 ### Before saving
 
-Run `vale-tools:lint-with-vale` against each file. Fix all ERROR-level issues before saving. Address WARNING-level issues when possible.
+Run `lint-with-vale` against each file. Fix all ERROR-level issues before saving. Address WARNING-level issues when possible.
 
 ```bash
 vale /path/to/your/file.adoc   # AsciiDoc
 vale /path/to/your/file.md     # MkDocs Markdown
 ```
 
-The `docs-tools:docs-review-modular-docs` (AsciiDoc only) and `docs-tools:docs-review-content-quality` skills provide additional structural and quality checks. The docs-reviewer agent runs the full suite of review skills.
+The `docs-review-modular-docs` (AsciiDoc only) and `docs-review-content-quality` skills provide additional structural and quality checks. The docs-reviewer agent runs the full suite of review skills.
 
 Refer to the format-specific quality checklist in `${CLAUDE_PLUGIN_ROOT}/reference/asciidoc-reference.md` or `${CLAUDE_PLUGIN_ROOT}/reference/mkdocs-reference.md` before finalizing.
 

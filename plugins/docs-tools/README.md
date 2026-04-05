@@ -38,7 +38,7 @@
 
 ## Customizing the docs workflow
 
-The docs orchestrator (`/docs-tools:docs-orchestrator`) runs a YAML-defined step list. You can customize it per-repo without modifying the plugin.
+The docs orchestrator (`/docs-orchestrator`) runs a YAML-defined step list. You can customize it per-repo without modifying the plugin.
 
 ### Override the workflow steps
 
@@ -63,11 +63,11 @@ workflow:
   name: docs-workflow
   steps:
     - name: requirements
-      skill: docs-tools:docs-workflow-requirements
+      skill: docs-workflow-requirements
       description: Analyze documentation requirements
 
     - name: planning
-      skill: docs-tools:docs-workflow-planning
+      skill: docs-workflow-planning
       inputs: [requirements]
 
     # Add a custom step using a local skill
@@ -96,7 +96,7 @@ Then reference it by its standalone name in the step list:
   inputs: [writing]
 ```
 
-Local standalone skills use short names (e.g., `my-review-skill`), while plugin skills use fully qualified names (e.g., `docs-tools:docs-workflow-writing`). Both can coexist in the same workflow YAML.
+Local standalone skills use short names (e.g., `my-review-skill`), while plugin skills use fully qualified names (e.g., `docs-workflow-writing`). Both can coexist in the same workflow YAML.
 
 ### Conditional steps
 
@@ -104,7 +104,7 @@ Use the `when` field to make steps run only when a CLI flag is passed:
 
 ```yaml
 - name: create-jira
-  skill: docs-tools:docs-workflow-create-jira
+  skill: docs-workflow-create-jira
   when: create_jira_project
   inputs: [planning]
 ```
@@ -117,10 +117,10 @@ Use `--workflow <name>` to maintain different workflows for different purposes:
 
 ```bash
 # Uses .claude/docs-quick.yaml
-/docs-tools:docs-orchestrator PROJ-123 --workflow quick
+/docs-orchestrator PROJ-123 --workflow quick
 
 # Uses .claude/docs-full.yaml
-/docs-tools:docs-orchestrator PROJ-123 --workflow full
+/docs-orchestrator PROJ-123 --workflow full
 ```
 
 ## Using the docs orchestrator in CI/CD
@@ -141,8 +141,8 @@ Your CI environment needs:
 
 The CI pattern has two phases:
 
-1. **Phase 1 — JIRA ready check**: The `docs-tools:docs-workflow-jira-ready` skill queries JIRA for tickets matching a JQL filter, excludes tickets that already have a workflow progress file or tracking label, and returns a JSON list of actionable ticket IDs.
-2. **Phase 2 — Orchestrator loop**: For each ready ticket, run the `docs-tools:docs-orchestrator` skill to execute the full documentation workflow.
+1. **Phase 1 — JIRA ready check**: The `docs-workflow-jira-ready` skill queries JIRA for tickets matching a JQL filter, excludes tickets that already have a workflow progress file or tracking label, and returns a JSON list of actionable ticket IDs.
+2. **Phase 2 — Orchestrator loop**: For each ready ticket, run the `docs-orchestrator` skill to execute the full documentation workflow.
 
 All invocations go through `claude -p` (headless mode) so the plugin system resolves script paths via `CLAUDE_PLUGIN_ROOT`. No local checkout of the tools repo is needed — only the plugin installed in Claude Code.
 
@@ -178,7 +178,7 @@ jobs:
           JIRA_AUTH_TOKEN: ${{ secrets.JIRA_AUTH_TOKEN }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
         run: |
-          RESULT=$(claude -p "Skill: docs-tools:docs-workflow-jira-ready, args: \"--jql '${{ env.DOCS_JQL }}' --add-label\"")
+          RESULT=$(claude -p "Skill: docs-workflow-jira-ready, args: \"--jql '${{ env.DOCS_JQL }}' --add-label\"")
           echo "tickets=$(echo "$RESULT" | jq -c '.ready')" >> "$GITHUB_OUTPUT"
 
   run-workflow:
@@ -204,7 +204,7 @@ jobs:
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          claude -p "Skill: docs-tools:docs-orchestrator, args: \"${{ matrix.ticket }} --draft\""
+          claude -p "Skill: docs-orchestrator, args: \"${{ matrix.ticket }} --draft\""
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -230,7 +230,7 @@ docs-check-tickets:
     - python3 -m pip install PyGithub python-gitlab jira pyyaml ratelimit requests beautifulsoup4 html2text
   script:
     - |
-      RESULT=$(claude -p "Skill: docs-tools:docs-workflow-jira-ready, args: \"--jql 'project=PROJ AND labels=docs-needed' --add-label\"")
+      RESULT=$(claude -p "Skill: docs-workflow-jira-ready, args: \"--jql 'project=PROJ AND labels=docs-needed' --add-label\"")
       TICKETS=$(echo "$RESULT" | jq -r '.ready[]' 2>/dev/null || true)
       if [ -z "$TICKETS" ]; then
         echo "No tickets ready for docs workflow."
@@ -238,7 +238,7 @@ docs-check-tickets:
       fi
       for TICKET in $TICKETS; do
         echo "=== Starting workflow for $TICKET ==="
-        claude -p "Skill: docs-tools:docs-orchestrator, args: \"$TICKET --draft\"" \
+        claude -p "Skill: docs-orchestrator, args: \"$TICKET --draft\"" \
           2>&1 | tee -a .work/cron-runs/$(date +%Y%m%d-%H%M%S)-${TICKET}.log
       done
   artifacts:

@@ -43,10 +43,10 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-tools:docs-planner` agent with the following prompt.
+Dispatch the `docs-planner` agent with the following prompt.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-planner`
+- `subagent_type`: `docs-planner`
 - `description`: `Create documentation plan for <TICKET>`
 
 **Prompt:**

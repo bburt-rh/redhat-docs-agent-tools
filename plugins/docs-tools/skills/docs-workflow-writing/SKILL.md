@@ -76,7 +76,7 @@ mkdir -p "$OUTPUT_DIR"
 ### 2a. UPDATE-IN-PLACE mode (default — no `--draft`)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-writer`
 - `description`: `Write <format> documentation for <TICKET>`
 
 **Prompt (AsciiDoc):**
@@ -120,7 +120,7 @@ mkdir -p "$OUTPUT_DIR"
 ### 2b. DRAFT mode (`--draft`)
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-writer`
 - `description`: `Write <format> documentation for <TICKET>`
 
 **Prompt (AsciiDoc, draft):**
@@ -182,7 +182,7 @@ mkdir -p "$OUTPUT_DIR"
 When invoked with `--fix-from`, the skill applies targeted corrections to existing drafts.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-writer`
+- `subagent_type`: `docs-writer`
 - `description`: `Fix documentation for <TICKET>`
 
 **Prompt:**

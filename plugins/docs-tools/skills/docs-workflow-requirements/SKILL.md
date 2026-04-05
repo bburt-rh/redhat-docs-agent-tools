@@ -37,10 +37,10 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-tools:requirements-analyst` agent with the following prompt.
+Dispatch the `requirements-analyst` agent with the following prompt.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:requirements-analyst`
+- `subagent_type`: `requirements-analyst`
 - `description`: `Analyze requirements for <TICKET>`
 
 **Prompt:**

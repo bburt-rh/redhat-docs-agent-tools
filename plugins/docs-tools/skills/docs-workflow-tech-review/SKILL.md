@@ -45,10 +45,10 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-tools:technical-reviewer` agent with the following prompt.
+Dispatch the `technical-reviewer` agent with the following prompt.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:technical-reviewer`
+- `subagent_type`: `technical-reviewer`
 - `description`: `Technical review of documentation for <TICKET>`
 
 **Prompt:**

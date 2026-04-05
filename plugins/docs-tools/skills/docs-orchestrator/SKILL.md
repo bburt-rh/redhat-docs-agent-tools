@@ -71,11 +71,11 @@ Steps declare their inputs as a list of upstream step names in the YAML:
 
 ```yaml
 - name: writing
-  skill: docs-tools:docs-workflow-writing
+  skill: docs-workflow-writing
   inputs: [planning]
 
 - name: create-jira
-  skill: docs-tools:docs-workflow-create-jira
+  skill: docs-workflow-create-jira
   when: create_jira_project
   inputs: [planning]
 ```
@@ -222,13 +222,13 @@ Skill: <step.skill>, args: "<constructed args>"
 
 The technical review step runs in a loop until confidence is acceptable or three iterations are exhausted:
 
-1. Invoke `docs-tools:docs-workflow-tech-review` with the standard args
+1. Invoke `docs-workflow-tech-review` with the standard args
 2. Read the output file and check for `Overall technical confidence: (HIGH|MEDIUM|LOW)`
    - If the confidence line is **missing** from the output, treat it as a step failure — mark the step `failed` and stop iteration
 3. If `HIGH` → mark completed, proceed to next step
 4. If `MEDIUM` or `LOW` and fewer than 3 iterations completed → run the fix skill:
    ```
-   Skill: docs-tools:docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
+   Skill: docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
    ```
    Then re-run the reviewer (go to step 1)
 5. After 3 iterations without reaching `HIGH`:

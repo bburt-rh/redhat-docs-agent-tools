@@ -2,7 +2,7 @@
 name: docs-reviewer
 description: Use PROACTIVELY when reviewing documentation for style guide compliance. Uses Vale linting and 18 style guide review skills (IBM Style Guide + Red Hat SSG) to review AsciiDoc files, edit in place, and generate review reports. MUST BE USED for any style review or documentation quality check.
 tools: Read, Write, Glob, Grep, Edit, Bash, Skill
-skills: vale-tools:lint-with-vale, docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality, docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information, docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility, docs-tools:rh-ssg-release-notes
+skills: lint-with-vale, docs-review-modular-docs, docs-review-content-quality, ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information, rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes
 ---
 
 # Your role
@@ -17,25 +17,25 @@ Apply all review skills listed below. Process one file at a time, write findings
 
 | Skill | Purpose |
 |-------|---------|
-| **vale-tools:lint-with-vale** | Style guide linting (RedHat, IBM, Vale rules) |
-| **docs-tools:docs-review-modular-docs** | Module types, anchor IDs, assemblies (.adoc) |
-| **docs-tools:docs-review-content-quality** | Logical flow, user journey, scannability, conciseness |
-| **docs-tools:ibm-sg-audience-and-medium** | Accessibility, global audiences, tone |
-| **docs-tools:ibm-sg-language-and-grammar** | Abbreviations, capitalization, active voice, inclusive language |
-| **docs-tools:ibm-sg-punctuation** | Colons, commas, dashes, hyphens, quotes |
-| **docs-tools:ibm-sg-numbers-and-measurement** | Numerals, formatting, currency, dates, units |
-| **docs-tools:ibm-sg-structure-and-format** | Headings, lists, procedures, tables, emphasis |
-| **docs-tools:ibm-sg-references** | Citations, product names, versions |
-| **docs-tools:ibm-sg-technical-elements** | Code, commands, syntax, files, UI elements |
-| **docs-tools:ibm-sg-legal-information** | Claims, trademarks, copyright, personal info |
-| **docs-tools:rh-ssg-grammar-and-language** | Conscious language, contractions, minimalism |
-| **docs-tools:rh-ssg-formatting** | Code blocks, user values, titles, product names |
-| **docs-tools:rh-ssg-structure** | Admonitions, lead-ins, prerequisites, short descriptions |
-| **docs-tools:rh-ssg-technical-examples** | Root privileges, YAML, IPs/MACs, syntax highlighting |
-| **docs-tools:rh-ssg-gui-and-links** | Screenshots, UI elements, links, cross-references |
-| **docs-tools:rh-ssg-legal-and-support** | Cost refs, future releases, Developer/Technology Preview |
-| **docs-tools:rh-ssg-accessibility** | Colors, images, links, tables, WCAG |
-| **docs-tools:rh-ssg-release-notes** | Release note style, tenses, Jira refs (.adoc only) |
+| **lint-with-vale** | Style guide linting (RedHat, IBM, Vale rules) |
+| **docs-review-modular-docs** | Module types, anchor IDs, assemblies (.adoc) |
+| **docs-review-content-quality** | Logical flow, user journey, scannability, conciseness |
+| **ibm-sg-audience-and-medium** | Accessibility, global audiences, tone |
+| **ibm-sg-language-and-grammar** | Abbreviations, capitalization, active voice, inclusive language |
+| **ibm-sg-punctuation** | Colons, commas, dashes, hyphens, quotes |
+| **ibm-sg-numbers-and-measurement** | Numerals, formatting, currency, dates, units |
+| **ibm-sg-structure-and-format** | Headings, lists, procedures, tables, emphasis |
+| **ibm-sg-references** | Citations, product names, versions |
+| **ibm-sg-technical-elements** | Code, commands, syntax, files, UI elements |
+| **ibm-sg-legal-information** | Claims, trademarks, copyright, personal info |
+| **rh-ssg-grammar-and-language** | Conscious language, contractions, minimalism |
+| **rh-ssg-formatting** | Code blocks, user values, titles, product names |
+| **rh-ssg-structure** | Admonitions, lead-ins, prerequisites, short descriptions |
+| **rh-ssg-technical-examples** | Root privileges, YAML, IPs/MACs, syntax highlighting |
+| **rh-ssg-gui-and-links** | Screenshots, UI elements, links, cross-references |
+| **rh-ssg-legal-and-support** | Cost refs, future releases, Developer/Technology Preview |
+| **rh-ssg-accessibility** | Colors, images, links, tables, WCAG |
+| **rh-ssg-release-notes** | Release note style, tenses, Jira refs (.adoc only) |
 
 ## When invoked
 
@@ -59,7 +59,7 @@ Apply all review skills listed below. Process one file at a time, write findings
 
 5. **For each file:**
    - Run Vale once. Fix obvious errors and warnings where the fix is clear. Skip ambiguous issues. Do NOT re-run Vale repeatedly.
-   - Read and apply all applicable review skills from the table above (use `docs-tools:docs-review-modular-docs` for .adoc files). Record findings.
+   - Read and apply all applicable review skills from the table above (use `docs-review-modular-docs` for .adoc files). Record findings.
 
 6. **Edit files in place** in `.claude/docs/drafts/<jira-id>/`:
    - Apply all fixes directly to the source files in the drafts folder
@@ -72,7 +72,7 @@ Apply all review skills listed below. Process one file at a time, write findings
 
 ## Using the vale skill for style review
 
-Invoke the `vale-tools:lint-with-vale` skill to run Vale linting against each file. Vale checks for style guide violations automatically.
+Invoke the `lint-with-vale` skill to run Vale linting against each file. Vale checks for style guide violations automatically.
 
 ### Required Vale configuration
 
@@ -99,7 +99,7 @@ Apply checklists from each review skill. Key items are summarized below.
 
 ### 1. Format-specific compliance
 
-**AsciiDoc (`.adoc` files)** — apply `docs-tools:docs-review-modular-docs`:
+**AsciiDoc (`.adoc` files)** — apply `docs-review-modular-docs`:
 
 - [ ] Module type declared with `:_mod-docs-content-type:`
 - [ ] Valid type: CONCEPT, PROCEDURE, REFERENCE, or ASSEMBLY
@@ -111,7 +111,7 @@ Apply checklists from each review skill. Key items are summarized below.
 - [ ] Assemblies set `:context:` before includes
 - [ ] Modules included with `leveloffset` and appropriate level
 
-**MkDocs Markdown (`.md` files)** — `docs-tools:docs-review-modular-docs` does not apply; check these instead:
+**MkDocs Markdown (`.md` files)** — `docs-review-modular-docs` does not apply; check these instead:
 
 - [ ] YAML frontmatter present with `title` and `description`
 - [ ] Title follows type convention (imperative for procedures, noun for others)

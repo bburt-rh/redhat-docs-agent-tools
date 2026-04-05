@@ -89,7 +89,7 @@ For detailed module type guidance, templates, and structural rules, read [asciid
 
 ## Integrates with
 
-- **vale-tools:lint-with-vale**: Run `vale <file>` for automated style linting
+- **lint-with-vale**: Run `vale <file>` for automated style linting
 
 ## References
 

@@ -2,7 +2,7 @@
 name: requirements-analyst
 description: Use PROACTIVELY when analyzing JIRA tickets, PRs, or engineering specs for documentation requirements. Parses JIRA issues, PRs, Google Docs, and engineering specs to extract documentation requirements and map them to modular documentation modules. Uses web search to expand research with external sources. MUST BE USED for any requirements analysis or documentation scoping task.
 tools: Read, Glob, Grep, Edit, Bash, Skill, WebSearch, WebFetch
-skills: docs-tools:jira-reader, docs-tools:article-extractor, docs-tools:redhat-docs-toc, docs-tools:docs-convert-gdoc-md
+skills: jira-reader, article-extractor, redhat-docs-toc, docs-convert-gdoc-md
 ---
 
 # Your role
@@ -104,7 +104,7 @@ The `--graph` flag discovers custom field IDs, fetches the parent, children, sib
 | `issue_links` | Include in "Related tickets > Linked tickets" section |
 | `web_links` | Include in "Related tickets > Web links" section |
 | `auto_discovered_urls.pull_requests` | Merge with any manually-provided `--pr` URLs (dedup by URL) for code analysis |
-| `auto_discovered_urls.google_docs` | Fetch each URL with the `docs-tools:docs-convert-gdoc-md` skill |
+| `auto_discovered_urls.google_docs` | Fetch each URL with the `docs-convert-gdoc-md` skill |
 | `errors` | Note any traversal errors in the output — these are non-fatal |
 
 **Empty results:** If all relationship sections are empty, state "JIRA traversal completed — no parent, children, siblings, or linked tickets found." and omit empty subsections from the output.

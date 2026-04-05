@@ -22,11 +22,11 @@ plugins/<name>/
 
 ## Skill naming convention
 
-Always use fully qualified `plugin:skill` names in agent instructions, Skill invocations, inline text references, and cross-references between skills:
+Use bare skill names for portability. Qualified names (`plugin:skill`) are only needed to disambiguate when two plugins have the same skill name:
 
-- `docs-tools:jira-reader` (not `jira-reader`)
-- `docs-tools:rh-ssg-formatting` (not `rh-ssg-formatting`)
-- `vale-tools:lint-with-vale` (not `vale`)
+- `jira-reader` (not `docs-tools:jira-reader`)
+- `rh-ssg-formatting` (not `docs-tools:rh-ssg-formatting`)
+- `lint-with-vale` (not `vale-tools:lint-with-vale`)
 
 ## Calling scripts from skills and commands
 
@@ -59,7 +59,7 @@ In **Claude Code**, use `${CLAUDE_PLUGIN_ROOT}` instead of the workspace-relativ
 Use `Skill:` pseudocode only for pure knowledge or checklist skills that have no backing script:
 
 ```bash
-Skill: docs-tools:rh-ssg-formatting, args: "review path/to/file.adoc"
+Skill: rh-ssg-formatting, args: "review path/to/file.adoc"
 ```
 
 Do not use old slash-command syntax (for example, `/jira-reader --issue PROJ-123`).
@@ -71,7 +71,7 @@ Do not use old slash-command syntax (for example, `/jira-reader --issue PROJ-123
 | `python3 scripts/...` | Calling a co-located script from within the same skill | `scripts/git_pr_reader.py`, `scripts/callouts.rb` |
 | Path from repo root under `plugins/.../scripts/` | Cross-skill or cross-command script calls in Cursor | Same scripts as above, with full path from workspace root |
 | `python3 ${CLAUDE_PLUGIN_ROOT}/...` | Cross-skill or cross-command script calls in Claude Code | `${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py` |
-| `Skill: plugin:skill` | Loading full skill knowledge — rules, checklists, domain expertise the model applies | `docs-tools:rh-ssg-formatting`, `docs-tools:ibm-sg-punctuation` |
+| `Skill: skill-name` | Loading full skill knowledge — rules, checklists, domain expertise the model applies | `rh-ssg-formatting`, `ibm-sg-punctuation` |
 
 ## Contributing rules
 

@@ -44,10 +44,10 @@ mkdir -p "$OUTPUT_DIR"
 
 ### 2. Dispatch agent
 
-Dispatch the `docs-tools:docs-reviewer` agent with a format-specific prompt.
+Dispatch the `docs-reviewer` agent with a format-specific prompt.
 
 **Agent tool parameters:**
-- `subagent_type`: `docs-tools:docs-reviewer`
+- `subagent_type`: `docs-reviewer`
 - `description`: `Review documentation for <TICKET>`
 
 **Prompt (AsciiDoc — `--format adoc`):**
@@ -58,12 +58,12 @@ Dispatch the `docs-tools:docs-reviewer` agent with a format-specific prompt.
 > **Edit files in place**. Do NOT create copies.
 >
 > For each file:
-> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 1. Run Vale linting once (use the `lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
->    - Red Hat docs: docs-tools:docs-review-modular-docs, docs-tools:docs-review-content-quality
->    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
->    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility, docs-tools:rh-ssg-release-notes (if applicable)
+>    - Red Hat docs: docs-review-modular-docs, docs-review-content-quality
+>    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
+>    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility, rh-ssg-release-notes (if applicable)
 > 4. Skip ambiguous issues requiring broader context
 >
 > Save the review report to: `<OUTPUT_FILE>`
@@ -76,12 +76,12 @@ Dispatch the `docs-tools:docs-reviewer` agent with a format-specific prompt.
 > **Edit files in place**. Do NOT create copies.
 >
 > For each file:
-> 1. Run Vale linting once (use the `vale-tools:lint-with-vale` skill)
+> 1. Run Vale linting once (use the `lint-with-vale` skill)
 > 2. Fix obvious errors where the fix is clear and unambiguous
 > 3. Run documentation review skills:
->    - Content quality: docs-tools:docs-review-content-quality
->    - IBM Style Guide: docs-tools:ibm-sg-audience-and-medium, docs-tools:ibm-sg-language-and-grammar, docs-tools:ibm-sg-punctuation, docs-tools:ibm-sg-numbers-and-measurement, docs-tools:ibm-sg-structure-and-format, docs-tools:ibm-sg-references, docs-tools:ibm-sg-technical-elements, docs-tools:ibm-sg-legal-information
->    - Red Hat SSG: docs-tools:rh-ssg-grammar-and-language, docs-tools:rh-ssg-formatting, docs-tools:rh-ssg-structure, docs-tools:rh-ssg-technical-examples, docs-tools:rh-ssg-gui-and-links, docs-tools:rh-ssg-legal-and-support, docs-tools:rh-ssg-accessibility
+>    - Content quality: docs-review-content-quality
+>    - IBM Style Guide: ibm-sg-audience-and-medium, ibm-sg-language-and-grammar, ibm-sg-punctuation, ibm-sg-numbers-and-measurement, ibm-sg-structure-and-format, ibm-sg-references, ibm-sg-technical-elements, ibm-sg-legal-information
+>    - Red Hat SSG: rh-ssg-grammar-and-language, rh-ssg-formatting, rh-ssg-structure, rh-ssg-technical-examples, rh-ssg-gui-and-links, rh-ssg-legal-and-support, rh-ssg-accessibility
 > 4. Skip ambiguous issues requiring broader context
 >
 > Save the review report to: `<OUTPUT_FILE>`
