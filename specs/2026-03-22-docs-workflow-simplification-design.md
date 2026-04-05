@@ -42,7 +42,7 @@ The `--integrate` flag and the `docs-integrator` agent are removed entirely. The
 #### Synopsis
 
 ```
-/docs-tools:docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]
+/docs-workflow [action] <ticket> [--pr <url>] [--create-jira <PROJECT>] [--mkdocs] [--draft]
 ```
 
 #### New: branch creation step (between Step 2 and Step 3)
@@ -144,13 +144,13 @@ Remove all `--integrate` examples. Add `--draft` examples:
 
 ```bash
 # Default: clean branch, docs written directly in repo
-/docs-tools:docs-workflow start RHAISTRAT-123
+/docs-workflow start RHAISTRAT-123
 
 # Draft mode: staging area, no branch
-/docs-tools:docs-workflow start RHAISTRAT-123 --draft
+/docs-workflow start RHAISTRAT-123 --draft
 
 # With PR and JIRA creation
-/docs-tools:docs-workflow start RHAISTRAT-123 --pr https://github.com/org/repo/pull/456 --create-jira INFERENG
+/docs-workflow start RHAISTRAT-123 --pr https://github.com/org/repo/pull/456 --create-jira INFERENG
 ```
 
 ### `plugins/docs-tools/agents/docs-writer.md`
