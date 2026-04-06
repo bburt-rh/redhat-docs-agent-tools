@@ -73,11 +73,12 @@ class TestExtract:
     def test_extract_stale_doc_apis(self):
         ext = Extractor()
         refs = ext.extract_files([STALE_DOC])
-        # The stale doc has inline file path references that get picked up
-        # as endpoint-type APIs (e.g. /client, /defaults, /processor)
-        api_names = [a["name"] for a in refs["apis"]]
-        assert any("/client" in n for n in api_names)
-        assert any("/processor" in n for n in api_names)
+        # After fixing RE_API_ENDPOINT to require an HTTP method prefix,
+        # bare file paths like /client and /processor should no longer
+        # appear as endpoint-type APIs.
+        endpoint_names = [a["name"] for a in refs["apis"] if a["type"] == "endpoint"]
+        assert not any("/client" in n for n in endpoint_names)
+        assert not any("/processor" in n for n in endpoint_names)
 
     def test_extract_stale_doc_file_paths(self):
         ext = Extractor()

@@ -61,7 +61,7 @@ RE_COMMAND_LINE_CODE = re.compile(r"^[\$#]\s+(.+)$")
 RE_INLINE_CODE_PATH = re.compile(r"`([a-zA-Z0-9_\-.\/]+\.[a-z]{2,})`")
 RE_FUNCTION_CALL = re.compile(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(")
 RE_CLASS_DEF = re.compile(r"\b(?:class|interface|struct)\s+([A-Z][a-zA-Z0-9_]*)")
-RE_API_ENDPOINT = re.compile(r"(?:GET|POST|PUT|PATCH|DELETE)?\s*(/[a-z0-9/_\-{}]+)")
+RE_API_ENDPOINT = re.compile(r"(?:GET|POST|PUT|PATCH|DELETE)\s+(/[a-z0-9/_\-{}]+)")
 RE_COMMENT_LINE = re.compile(r"^//($|[^/].*)$")
 RE_COMMENT_BLOCK = re.compile(r"^/{4,}\s*$")
 
@@ -231,6 +231,9 @@ class Extractor:
                 continue
 
             # Outside code block — inline references
+            # A block title only applies to the immediately following block.
+            # If we reach here, the line is not a code block opener, so clear it.
+            block_title = None
 
             # Commands ($ command)
             m = RE_COMMAND_LINE.match(line)
