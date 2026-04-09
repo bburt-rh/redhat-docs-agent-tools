@@ -396,7 +396,18 @@ Extract the `<org>/<repo>` segment from each URL and group the PRs by repository
 
 ### 3. Select the source repository
 
-- **No PRs found** → update all `deferred` steps to `skipped`, continue the workflow without code-evidence. Log: "No PR URLs found in requirements. Skipping code-evidence."
+- **No PRs found** → prompt the user before skipping:
+
+  Use `AskUserQuestion` to ask:
+
+  > No source code repository or PR was discovered for this ticket. If you have a PR or repo URL, provide it now to enable code-evidence retrieval. Otherwise, press Enter to skip.
+
+  - If the user provides a URL:
+    - If it matches a PR/MR pattern (`github.com/.../pull/N` or `gitlab.com/.../-/merge_requests/N`), treat it as a `--pr` URL and resolve the repo from it (same as case 3 in "Determine source configuration")
+    - Otherwise, treat it as a `--repo` URL or local path
+    - Proceed to step 4 (Clone and configure)
+  - If the user presses Enter (empty response), update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source repo provided. Skipping code-evidence."
+
 - **Single repo** → use it directly. Resolve the repo URL and branch from the first PR:
 
   ```bash
