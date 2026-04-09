@@ -16,17 +16,17 @@ This skill runs `asciidoctor` on an input file to validate its syntax. It captur
 ## Usage
 
 ```bash
-bash scripts/check_asciidoctor.sh <file.adoc>
+bash ${CLAUDE_SKILL_DIR}/scripts/check_asciidoctor.sh <file.adoc>
 ```
 
 ### Examples
 
 ```bash
 # Check a single module
-bash scripts/check_asciidoctor.sh modules/con-overview.adoc
+bash ${CLAUDE_SKILL_DIR}/scripts/check_asciidoctor.sh modules/con-overview.adoc
 
 # Check an assembly
-bash scripts/check_asciidoctor.sh guides/master.adoc
+bash ${CLAUDE_SKILL_DIR}/scripts/check_asciidoctor.sh guides/master.adoc
 ```
 
 ## Output
