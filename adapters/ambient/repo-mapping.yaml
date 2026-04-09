@@ -6,4 +6,4 @@ repos:
   - jira_project: TELCODOCS
     repo_url: https://github.com/mcljot/openshift-docs
     default_branch: main
-    format: asciidoc
+    format: adoc

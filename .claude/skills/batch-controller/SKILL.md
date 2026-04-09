@@ -22,20 +22,20 @@ export CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel
 
 If setup fails, run `batch-progress.sh abort` and stop the session.
 
-## Step 1: Scrape JIRA for trigger label
+## Step 1: Discover tickets
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-reader/scripts/jira_reader.py \
-  --jql 'labels = "ambient-docs-ready"'
+TICKETS_JSON="$(bash adapters/ambient/scripts/batch-find-tickets.sh \
+  ${DOCS_JIRA_PROJECT:+--jira-project "$DOCS_JIRA_PROJECT"})"
 ```
 
-If `DOCS_JIRA_PROJECT` is set, scope the query: `project = ${DOCS_JIRA_PROJECT} AND labels = "ambient-docs-ready"`.
+This script queries JIRA for both `ambient-docs-ready` and `ambient-docs-processing` labels, then cross-references `batch-progress.json` to filter out already-completed tickets. It returns JSON with four lists: `ready`, `orphaned`, `skipped`, and `all`.
 
-Parse JSON output to extract ticket keys from `issue_key`. If no tickets found, write a batch summary, run `batch-progress.sh finish`, and end the session.
+If `all` is empty, write a batch summary, run `batch-progress.sh finish`, and end the session.
 
 ## Step 1.5: Claim tickets
 
-For each ticket, swap labels to prevent double-processing:
+For tickets in the `ready` list, swap labels to prevent double-processing:
 
 ```bash
 python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py \
@@ -44,9 +44,11 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-writer/scripts/jira_writer.py \
   --labels-add ambient-docs-processing
 ```
 
+Skip the label swap for tickets in the `orphaned` list — they already have `ambient-docs-processing` from a previous session that crashed or was interrupted.
+
 Run per-ticket for error isolation. If a claim fails, skip that ticket. This step must complete for all tickets before processing begins.
 
-After claiming, register the tickets with the progress tracker:
+After claiming, register all tickets (from the `all` list) with the progress tracker:
 
 ```bash
 bash adapters/ambient/scripts/batch-progress.sh init <TICKET-1> <TICKET-2> ...
@@ -69,6 +71,14 @@ bash adapters/ambient/scripts/batch-progress.sh init <TICKET-1> <TICKET-2> ...
 
 For each claimed ticket, run steps 2a–2g sequentially.
 
+**Working directory:** Steps 2c and 2d run git/gh commands in the cloned target repo, which may change your working directory. Before every `batch-progress.sh` call, ensure you are in the agent-tools repo root:
+
+```bash
+cd "${REPO_ROOT}"
+```
+
+Verify this resolves to the agent-tools repo (contains `adapters/ambient/`), not a cloned docs repo under `.work/`.
+
 ### 2a. Resolve and clone target repo
 
 ```bash
@@ -84,17 +94,22 @@ Read `artifacts/<ticket>/repo-info.json` for `format`, `repo_url`, `clone_path`,
 bash adapters/ambient/scripts/batch-progress.sh step 2b
 ```
 
-Build orchestrator args from `repo-info.json`:
-- Add `--mkdocs` if `format` is `mkdocs`
-- Add `--repo-path <clone_path>` if `repo_url` is non-null and `clone_path` exists; otherwise add `--draft`
+Resolve orchestrator flags from `repo-info.json`:
+
+```bash
+REPO_FLAGS="$(bash adapters/ambient/scripts/resolve-repo-context.sh "<TICKET-KEY>")"
+```
+
+Then invoke the orchestrator with the resolved flags:
 
 ```
-Skill: docs-orchestrator, args: "<TICKET-KEY> --workflow acp [--repo-path <clone_path> | --draft] [--mkdocs]"
+Skill: docs-orchestrator, args: "<TICKET-KEY> --workflow acp ${REPO_FLAGS}"
 ```
 
 ### 2c. Publish changes
 
 ```bash
+cd "${REPO_ROOT}"
 bash adapters/ambient/scripts/batch-progress.sh step 2c
 ```
 
@@ -104,13 +119,32 @@ Only if `repo_url` is non-null in `repo-info.json`:
 bash adapters/ambient/scripts/repo-publish.sh <TICKET-KEY>
 ```
 
+Return to the agent-tools repo root after publishing (the script operates in the cloned repo):
+
+```bash
+cd "${REPO_ROOT}"
+```
+
 ### 2d. Create or update MR/PR
 
 ```bash
+cd "${REPO_ROOT}"
 bash adapters/ambient/scripts/batch-progress.sh step 2d
 ```
 
-Only if `publish-info.json` has `pushed: true`. See [reference.md](reference.md) for platform-specific instructions. Record MR/PR URL for the batch summary.
+Only if `publish-info.json` has `pushed: true`:
+
+```bash
+bash adapters/ambient/scripts/repo-create-mr.sh <TICKET-KEY>
+```
+
+Read `artifacts/<ticket>/mr-info.json` for the MR/PR URL. Record it for the batch summary. If the script fails, log the error and continue — the branch is already pushed.
+
+Return to the agent-tools repo root:
+
+```bash
+cd "${REPO_ROOT}"
+```
 
 ### 2e. Record the result
 
@@ -158,5 +192,5 @@ bash adapters/ambient/scripts/batch-progress.sh finish
 - **Label claim fails** (Step 1.5): Skip that ticket — another session likely claimed it.
 - **Single ticket fails** (Step 2): Log error, update label to failed, continue to next ticket.
 - **Label update fails** (Step 2f): Log warning, continue.
-- **Session dies mid-processing**: Tickets retain `ambient-docs-processing`. Manual cleanup or retry mechanism should re-label them.
+- **Session dies mid-processing**: Tickets retain `ambient-docs-processing`. The next batch session will detect these as orphaned via `batch-find-tickets.sh` and resume processing automatically.
 - **No tickets found**: Write summary noting zero tickets, run `batch-progress.sh finish`, end session.

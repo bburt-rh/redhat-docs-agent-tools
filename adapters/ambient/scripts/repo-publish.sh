@@ -189,6 +189,11 @@ COMMIT_SHA=$(git rev-parse HEAD)
 echo "Committed: ${COMMIT_SHA}"
 
 # --- Push ---
+# Fetch the remote branch ref so --force-with-lease has correct tracking info.
+# Required when a previous ACP session already pushed to this branch and the
+# local clone was re-created from scratch.
+git fetch origin "$BRANCH" 2>/dev/null || true
+
 # Use --force-with-lease: these are pipeline-generated branches, not collaborative
 # work. Re-runs create a fresh branch from main, diverging from the remote.
 # Force push is safe here — the branch safety check above already prevents

@@ -88,6 +88,11 @@ print(f'DEFAULT_BRANCH={shlex.quote(d.get(\"default_branch\", \"main\"))}')
 print(f'FORMAT={shlex.quote(d.get(\"format\", \"adoc\"))}')
 " <<< "$REPO_CONFIG")"
 
+# Normalize format values (mapping files may use "asciidoc" but pipeline expects "adoc")
+case "$FORMAT" in
+  asciidoc|AsciiDoc|ASCIIDOC) FORMAT="adoc" ;;
+esac
+
 # Detect platform from URL
 if echo "$REPO_URL" | grep -q "github.com"; then
   PLATFORM="github"

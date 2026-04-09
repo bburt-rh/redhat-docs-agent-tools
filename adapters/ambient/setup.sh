@@ -125,3 +125,7 @@ if bad:
 else
   echo "WARNING: results field may have stale paths" >&2
 fi
+
+# Write sentinel so orchestrator pre-flight can skip redundant setup
+touch "${REPO_ROOT}/artifacts/.setup-complete"
+echo "Setup sentinel: written"

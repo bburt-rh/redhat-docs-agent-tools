@@ -65,3 +65,5 @@ mkdir -p "$OUTPUT_DIR"
 After the agent completes, verify the review report exists at `<OUTPUT_FILE>`.
 
 The review report **must** include an `Overall technical confidence: HIGH|MEDIUM|LOW` line. If this line is missing from the output, the orchestrator will treat it as a step failure.
+
+The report should also include a `Severity counts: critical=N significant=N minor=N sme=N` line. This enables the orchestrator to skip unnecessary iteration when only SME-verification items remain.

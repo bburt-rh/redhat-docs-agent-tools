@@ -13,7 +13,15 @@ This skill teaches you how to run a documentation workflow pipeline. You read th
 
 ## Pre-flight
 
-Before starting, verify the environment:
+Check if setup has already been completed by an upstream script (e.g., ACP's `setup.sh`):
+
+```bash
+if [[ -f "artifacts/.setup-complete" ]]; then
+  echo "Setup already completed (sentinel found). Skipping pre-flight checks."
+fi
+```
+
+If the sentinel file exists, skip directly to **Parse arguments**. Otherwise, run the full pre-flight:
 
 ```bash
 # Source ~/.env if JIRA_API_TOKEN is not set
@@ -239,12 +247,15 @@ The technical review step runs in a loop until confidence is acceptable or three
 2. Read the output file and check for `Overall technical confidence: (HIGH|MEDIUM|LOW)`
    - If the confidence line is **missing** from the output, treat it as a step failure — mark the step `failed` and stop iteration
 3. If `HIGH` → mark completed, proceed to next step
-4. If `MEDIUM` or `LOW` and fewer than 3 iterations completed → run the fix skill:
+4. If `MEDIUM`, check for the `Severity counts:` line in the review output:
+   - If present and both `critical=0` AND `significant=0` → treat as acceptable. Log: "MEDIUM confidence with zero critical/significant issues — proceeding (remaining items require SME review)." Mark completed and proceed to next step.
+   - If the severity line is missing, or either `critical > 0` or `significant > 0` → continue to step 5 for iteration
+5. If `MEDIUM` (with fixable issues) or `LOW` and fewer than 3 iterations completed → run the fix skill:
    ```
    Skill: docs-workflow-writing, args: "<ticket> --base-path <base_path> --fix-from <base_path>/technical-review/review.md"
    ```
    Then re-run the reviewer (go to step 1)
-5. After 3 iterations without reaching `HIGH`:
+6. After 3 iterations without reaching `HIGH`:
    - `MEDIUM` is acceptable — proceed with a warning that manual review is recommended
    - `LOW` after max iterations — ask the user whether to proceed or stop
 

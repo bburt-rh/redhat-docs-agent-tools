@@ -98,8 +98,13 @@ Structure your review as follows:
 ### Minor issues (consider fixing)
 [Missing verifications, incomplete "why" context, hardcoded values that should be user-supplied. If none, say "None identified."]
 
+### SME verification needed
+[Issues that require subject-matter expert input and cannot be resolved by editing the document — e.g., confirming default values, verifying version-specific behavior, validating architecture claims. If none, say "None identified."]
+
 ### Strengths
 [What this doc does well from a technical accuracy and implementer usability perspective. Be specific.]
+
+Severity counts: critical=N significant=N minor=N sme=N
 ```
 
 For each issue, provide:

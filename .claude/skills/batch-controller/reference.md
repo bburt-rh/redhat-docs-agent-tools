@@ -31,6 +31,8 @@ Written by `repo-publish.sh` to `artifacts/<ticket>/publish-info.json`:
 
 ## Step 2d: MR/PR creation details
 
+> **Note:** MR/PR creation is now handled by `adapters/ambient/scripts/repo-create-mr.sh`. The details below are retained for reference and debugging.
+
 Read `artifacts/<ticket>/publish-info.json`. Only proceed if `pushed` is `true`.
 
 First, check if an MR/PR already exists for the source branch. Re-runs force-push to the same branch, which automatically updates any open MR/PR.
