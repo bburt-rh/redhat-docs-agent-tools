@@ -59,35 +59,51 @@ bash ${CLAUDE_SKILL_DIR}/scripts/setup-hooks.sh
 
 After parsing arguments and before running steps, resolve the source code repository if one is configured. This makes the repo available to all downstream steps that need it (requirements, code-evidence, writing).
 
-### Determine source configuration
+All clone, verify, PR-resolution, and source.yaml logic is handled by the `resolve_source.py` script. The orchestrator calls the script and acts on the JSON result.
 
-Check for source information in priority order:
+### Pre-flight resolution
 
-1. **CLI `--repo` flag** — if provided, use it directly
-2. **Per-ticket source config** — check for `<base-path>/source.yaml`. If found, read it
-3. **PR-derived** — if `--pr` URLs were provided but no `--repo`, resolve the repo from the PR before steps run (see below)
-4. **Post-requirements discovery** — if none of the above apply, defer source resolution until after the requirements step completes. The requirements analyst often discovers PR/MR URLs from the JIRA ticket graph. After requirements finishes, the orchestrator scans `requirements.md` for PR URLs, resolves the repo, and enables code-evidence. See [Post-requirements source resolution](#post-requirements-source-resolution) below
-5. **None** — no source found even after requirements. Steps with `when: has_source_repo` that are still `deferred` are marked `skipped`
-
-If source (1) or (2) is available, proceed to clone/verify below.
-
-If source (3) applies (PR-only, no `--repo`), resolve the repo from the PR URL before steps run. Extract the repo URL and PR branch from the first `--pr` URL:
+Run the script with whatever source information is available from CLI args:
 
 ```bash
-REPO_URL=$(gh pr view "$PR_URL" --json headRepository --jq '.headRepository.url')
-PR_BRANCH=$(gh pr view "$PR_URL" --json headRefName --jq '.headRefName')
+python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
+  --base-path <base_path> \
+  [--repo <url-or-path>] \
+  [--pr <url>]...
 ```
 
-Then proceed with clone/verify below using these values. Set `has_source_repo` to true. This centralizes all repo acquisition in the orchestrator — code-evidence no longer handles cloning.
+The script checks sources in priority order:
 
-### Distinguish URL from local path
+1. **CLI `--repo` flag** — clone or verify the path
+2. **Per-ticket `source.yaml`** — read and apply existing config
+3. **PR-derived** — resolve repo URL and branch from `--pr` via `gh pr view`
+4. **No source** — exit code 2, defer resolution until after requirements
 
-- If the value starts with `https://`, `git@`, or `ssh://` → treat as a remote URL and clone
-- Otherwise → treat as a local path and verify it exists
+The script outputs JSON to stdout:
+
+```json
+{
+  "status": "resolved",
+  "repo_path": ".claude/docs/proj-123/code-repo",
+  "repo_url": "https://github.com/org/operator",
+  "ref": "pr-branch-name",
+  "scope": null
+}
+```
+
+### Handle the result
+
+| Exit code | `status` | Action |
+|---|---|---|
+| 0 | `resolved` | Set `has_source_repo = true`. Record `options.source` in the progress file from the JSON fields (`repo_path`, `repo_url`, `ref`, `scope`) |
+| 1 | `error` | **STOP** with the error `message` from the JSON |
+| 2 | `no_source` | Mark steps with `when: has_source_repo` as `deferred`. Source resolution will be retried after requirements (see [Post-requirements source resolution](#post-requirements-source-resolution)) |
+
+If `discovered_repos` is present in the result (multiple repos found during scan), log which repo was auto-selected and list the others.
 
 ### Per-ticket source config schema
 
-Writers can create `<base-path>/source.yaml` before starting a workflow to pre-configure the source repo and scope. The orchestrator also writes this file from `--repo` on first run so that resume picks it up automatically.
+Writers can create `<base-path>/source.yaml` before starting a workflow to pre-configure the source repo and scope. The script also writes this file after a successful clone so that resume picks it up automatically.
 
 ```yaml
 # .claude/docs/<ticket>/source.yaml
@@ -105,67 +121,6 @@ scope:
 ```
 
 All fields except `repo` are optional. If `scope` is omitted, the entire repository is in scope.
-
-### Clone or verify the repo
-
-Set `CLONE_DIR="${BASE_PATH}/code-repo"`.
-
-**If `repo` is a local path:**
-- Verify it exists and is a directory. If not, STOP with error: "Source repo path does not exist: `<path>`"
-- Set `REPO_PATH` to the local path (do not copy it)
-
-**If `repo` is a URL:**
-- If `$CLONE_DIR` already exists, reuse it. Run `git -C "$CLONE_DIR" rev-parse HEAD` to verify it's a valid git repo. If `ref` in source config differs from what's checked out, fetch and checkout the requested ref.
-- If `$CLONE_DIR` does not exist, clone:
-
-  ```bash
-  # If ref is specified
-  git clone --depth 1 --branch "$REF" "$REPO_URL" "$CLONE_DIR"
-
-  # Fallback if branch clone fails (e.g., ref is a commit hash)
-  git clone --depth 1 "$REPO_URL" "$CLONE_DIR"
-  cd "$CLONE_DIR" && git fetch origin "$REF" && git checkout FETCH_HEAD
-  ```
-
-- If clone fails, STOP with error: "Cannot clone `<REPO_URL>`. For private repos, ensure `gh` is authenticated. Alternatively, clone manually and provide `--repo <local_path>`."
-
-Set `REPO_PATH` to the resolved path.
-
-**If `--pr` URLs were also provided:**
-- Extract the PR branch: `gh pr view "$PR_URL" --json headRefName --jq '.headRefName'`
-- Override `ref` with the PR branch (the PR code is what's being documented)
-- PR overrides `ref` only — `scope` from `source.yaml` is preserved
-
-### Persist source config
-
-If the source was provided via CLI `--repo` and no `source.yaml` exists yet, write one **after** successful clone/verify:
-
-```yaml
-repo: <url-or-path>
-ref: <ref>
-```
-
-This ensures resume picks up the same source without re-specifying CLI args. Do not write `source.yaml` before clone succeeds — a failed clone should not leave stale config.
-
-### Record in progress file
-
-Add the resolved source to the progress file `options`:
-
-```json
-"options": {
-  "source": {
-    "repo_path": ".claude/docs/proj-123/code-repo",
-    "repo_url": "https://github.com/org/operator",
-    "ref": "main",
-    "scope": {
-      "include": ["src/controllers/**", "pkg/api/v1/**"],
-      "exclude": ["**/vendor/**"]
-    }
-  }
-}
-```
-
-If no source was configured, `options.source` is `null`.
 
 ## Load the step list
 
@@ -379,79 +334,49 @@ Skill: <step.skill>, args: "<constructed args>"
 
 ## Post-requirements source resolution
 
-This section triggers **only** when the `requirements` step completes AND `options.source` is still `null` (i.e., no source was resolved pre-flight). It implements case 4 from "Determine source configuration".
+This section triggers **only** when the `requirements` step completes AND `options.source` is still `null` (i.e., no source was resolved pre-flight).
 
-### 1. Scan requirements for PR URLs
+### 1. Run the script with `--scan-requirements`
 
-Read `<base-path>/requirements/requirements.md` and extract all GitHub/GitLab PR/MR URLs. Look for URLs matching these patterns:
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
+  --base-path <base_path> \
+  --scan-requirements
+```
 
-- `https://github.com/<org>/<repo>/pull/<number>`
-- `https://gitlab.com/<org>/<repo>/-/merge_requests/<number>`
+The script scans `requirements.md` for GitHub/GitLab PR/MR URLs, groups them by repo, selects the repo with the most PRs, resolves the branch via `gh pr view`, clones, and writes `source.yaml`.
 
-URLs may appear as bare links or inside markdown links (e.g., `[PR #1651](https://github.com/org/repo/pull/1651)`). Extract the URL itself, not the link text.
+### 2. Handle the result
 
-### 2. Group by repository
+| Exit code | `status` | Action |
+|---|---|---|
+| 0 | `resolved` | Record `options.source` in the progress file. Update all `deferred` steps to `pending`. If `discovered_repos` has multiple entries, log which was auto-selected |
+| 1 | `error` / `clone_failed` | Log a warning: "Could not clone `<repo_url>`. Code-evidence will be skipped. To retry, run with `--repo <url-or-local-path>`." Update all `deferred` steps to `skipped` |
+| 2 | `no_source` | Prompt the user (see below) |
 
-Extract the `<org>/<repo>` segment from each URL and group the PRs by repository.
+### 3. Prompt when no source found
 
-### 3. Select the source repository
+When the script returns `no_source`, prompt the user before skipping:
 
-- **No PRs found** → prompt the user before skipping:
+Use `AskUserQuestion` to ask:
 
-  Use `AskUserQuestion` to ask:
+> No source code repository or PR was discovered for this ticket. If you have a PR or repo URL, provide it now to enable code-evidence retrieval. Otherwise, press Enter to skip.
 
-  > No source code repository or PR was discovered for this ticket. If you have a PR or repo URL, provide it now to enable code-evidence retrieval. Otherwise, press Enter to skip.
-
-  - If the user provides a URL:
-    - If it matches a PR/MR pattern (`github.com/.../pull/N` or `gitlab.com/.../-/merge_requests/N`), treat it as a `--pr` URL and resolve the repo from it (same as case 3 in "Determine source configuration")
-    - Otherwise, treat it as a `--repo` URL or local path
-    - Proceed to step 4 (Clone and configure)
-  - If the user presses Enter (empty response), update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source repo provided. Skipping code-evidence."
-
-- **Single repo** → use it directly. Resolve the repo URL and branch from the first PR:
+- If the user provides a URL, re-run the script with the URL:
 
   ```bash
-  REPO_URL=$(gh pr view "$PR_URL" --json headRepository --jq '.headRepository.url')
-  PR_BRANCH=$(gh pr view "$PR_URL" --json headRefName --jq '.headRefName')
+  # If URL matches a PR/MR pattern
+  python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
+    --base-path <base_path> --pr <user_url>
+
+  # Otherwise treat as a repo URL or local path
+  python3 ${CLAUDE_SKILL_DIR}/scripts/resolve_source.py \
+    --base-path <base_path> --repo <user_url>
   ```
 
-- **Multiple repos** → use the repo with the most PR references (heuristic: more PRs = more relevant to the ticket). Log a warning listing all discovered repos:
+  Handle the result as above (exit 0 → record and enable deferred steps; exit 1 → skip with warning).
 
-  > Auto-selected `<org>/<repo>` (3 PRs). Also found: `<other-org>/<other-repo>` (1 PR). Override with `--repo` if needed.
-
-  Resolve the repo URL and branch from the first PR of the selected repo.
-
-### 4. Clone and configure
-
-1. Clone the repo using the existing "Clone or verify the repo" procedure with `CLONE_DIR="${BASE_PATH}/code-repo"`
-2. If `PR_BRANCH` was resolved, check out that branch
-3. Write `source.yaml` for resume:
-
-   ```yaml
-   repo: <repo_url>
-   ref: <pr_branch or main>
-   ```
-
-4. Update the progress file `options.source`:
-
-   ```json
-   "source": {
-     "repo_path": "<base-path>/code-repo",
-     "repo_url": "<repo_url>",
-     "ref": "<branch>",
-     "scope": null
-   }
-   ```
-
-5. Update all `deferred` steps to `pending`
-
-### 5. Handle clone failure
-
-If the clone fails, log a warning and degrade gracefully:
-
-> Could not clone `<repo_url>`. Code-evidence will be skipped. To retry, run with `--repo <url-or-local-path>`.
-
-Update all `deferred` steps to `skipped`. The workflow continues without code-evidence — the writing step proceeds using only the requirements and plan.
+- If the user presses Enter (empty response), update all `deferred` steps to `skipped` and continue without code-evidence. Log: "No source repo provided. Skipping code-evidence."
 
 ## Technical review iteration
 
