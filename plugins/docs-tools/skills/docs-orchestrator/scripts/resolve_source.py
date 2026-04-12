@@ -23,11 +23,16 @@ Exit codes:
     0 — success (source resolved, JSON on stdout)
     1 — error (message on stderr)
     2 — no source found (not an error; JSON with status "no_source" on stdout)
+
+Limitations:
+    - GitLab MR resolution is not yet supported. MRs are discovered during
+      requirements scanning but cannot be resolved automatically (gh CLI is
+      GitHub-only). Users must provide --repo manually for GitLab repos.
+      Future work: add glab CLI support or GitLab API integration.
 """
 
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys
@@ -91,9 +96,15 @@ def _read_source_yaml(base_path):
 
 
 def _parse_simple_yaml(path):
-    """Parse a simple key-value YAML without PyYAML dependency."""
+    """Parse a simple key-value YAML without PyYAML dependency.
+
+    Handles the source.yaml schema: top-level scalars (repo, ref) and a
+    nested scope dict with include/exclude lists. Indentation determines
+    nesting — indented keys belong to the most recent top-level mapping key.
+    """
     result = {}
-    current_key = None
+    # parent_key tracks the current top-level mapping key (e.g., "scope")
+    parent_key = None
     current_list = None
 
     with open(path) as f:
@@ -102,55 +113,69 @@ def _parse_simple_yaml(path):
             if not stripped or stripped.startswith("#"):
                 continue
 
-            # Handle list items under a key
-            if stripped.startswith("- ") and current_key and current_list is not None:
+            indent = len(line) - len(line.lstrip())
+
+            # Handle list items under a nested key
+            if stripped.startswith("- ") and current_list is not None:
                 value = stripped[2:].strip().strip('"').strip("'")
                 current_list.append(value)
                 continue
 
-            # Handle key: value pairs
-            if ":" in stripped:
-                key, _, value = stripped.partition(":")
-                key = key.strip()
-                value = value.strip()
+            if ":" not in stripped:
+                continue
 
-                if not value:
-                    # Could be a dict or list parent
-                    current_key = key
-                    current_list = None
-                    result[key] = {}
-                elif value == "":
-                    result[key] = None
-                    current_key = key
+            key, _, value = stripped.partition(":")
+            key = key.strip()
+            value = value.strip()
+
+            if indent == 0:
+                # Top-level key
+                if value:
+                    result[key] = value.strip('"').strip("'")
+                    parent_key = None
                     current_list = None
                 else:
-                    value = value.strip('"').strip("'")
-                    if current_key and key in ("include", "exclude"):
-                        result.setdefault(current_key, {})[key] = []
-                        current_list = result[current_key][key]
-                    else:
-                        result[key] = value
-                        current_key = key
-                        current_list = None
-
-            # Detect list start
-            if current_key and stripped.startswith("include:"):
-                result.setdefault(current_key, {})["include"] = []
-                current_list = result[current_key]["include"]
-            elif current_key and stripped.startswith("exclude:"):
-                result.setdefault(current_key, {})["exclude"] = []
-                current_list = result[current_key]["exclude"]
+                    # Mapping parent (e.g., "scope:")
+                    result[key] = {}
+                    parent_key = key
+                    current_list = None
+            elif parent_key and indent > 0:
+                # Nested key under parent (e.g., "include:" under "scope:")
+                if value:
+                    result[parent_key][key] = value.strip('"').strip("'")
+                    current_list = None
+                else:
+                    # List parent (e.g., "include:" with no value)
+                    result[parent_key][key] = []
+                    current_list = result[parent_key][key]
 
     return result
 
 
+def _normalize_git_url(url):
+    """Normalize a git URL for comparison (strip .git suffix and trailing slash)."""
+    return url.rstrip("/").removesuffix(".git")
+
+
 def _resolve_pr_info(pr_url):
-    """Extract repo URL and branch from a PR URL using gh CLI."""
-    repo_url = _run_gh([
-        "pr", "view", pr_url,
-        "--json", "headRepository",
-        "--jq", ".headRepository.url",
-    ])
+    """Extract repo URL and branch from a GitHub PR URL using gh CLI.
+
+    Derives the clone URL from the PR URL (base repo), not headRepository
+    (which may be a fork).
+    """
+    # Extract base repo slug from PR URL: https://github.com/org/repo/pull/N
+    match = GITHUB_PR_RE.match(pr_url)
+    if match:
+        repo_slug = match.group(1)
+        repo_url = f"https://github.com/{repo_slug}.git"
+    else:
+        # Fallback for non-standard URLs — ask gh for the PR's base repo
+        repo_url = _run_gh([
+            "pr", "view", pr_url,
+            "--json", "url",
+            "--jq", '.url | split("/pull/")[0] + ".git"',
+        ])
+
     pr_branch = _run_gh([
         "pr", "view", pr_url,
         "--json", "headRefName",
@@ -216,8 +241,8 @@ def _clone_repo(repo_url, clone_dir, ref=None):
         if fetch.returncode != 0:
             return False
 
-        _run_git(["checkout", "FETCH_HEAD"], cwd=clone_dir, check=False)
-        return True
+        checkout = _run_git(["checkout", "FETCH_HEAD"], cwd=clone_dir, check=False)
+        return checkout.returncode == 0
 
     result = _run_git(
         ["clone", "--depth", "1", repo_url, clone_dir],
@@ -226,11 +251,20 @@ def _clone_repo(repo_url, clone_dir, ref=None):
     return result.returncode == 0
 
 
-def _verify_existing_clone(clone_dir, ref=None):
+def _verify_existing_clone(clone_dir, ref=None, expected_repo_url=None):
     """Verify an existing clone is valid. Optionally checkout a different ref."""
     result = _run_git(["rev-parse", "HEAD"], cwd=str(clone_dir), check=False)
     if result.returncode != 0:
         return False
+
+    if expected_repo_url:
+        origin = _run_git(
+            ["remote", "get-url", "origin"], cwd=str(clone_dir), check=False,
+        )
+        if origin.returncode != 0:
+            return False
+        if _normalize_git_url(origin.stdout.strip()) != _normalize_git_url(expected_repo_url):
+            return False
 
     if ref:
         current = _run_git(
@@ -239,14 +273,20 @@ def _verify_existing_clone(clone_dir, ref=None):
         )
         current_branch = current.stdout.strip()
         if current_branch != ref:
-            _run_git(["fetch", "origin", ref], cwd=str(clone_dir), check=False)
+            fetch = _run_git(
+                ["fetch", "origin", ref], cwd=str(clone_dir), check=False,
+            )
+            if fetch.returncode != 0:
+                return False
             checkout = _run_git(
                 ["checkout", ref], cwd=str(clone_dir), check=False,
             )
             if checkout.returncode != 0:
-                _run_git(
+                fallback = _run_git(
                     ["checkout", "FETCH_HEAD"], cwd=str(clone_dir), check=False,
                 )
+                if fallback.returncode != 0:
+                    return False
     return True
 
 
@@ -303,8 +343,8 @@ def resolve(args):
 
             # Clone or verify
             if clone_dir.exists():
-                if not _verify_existing_clone(clone_dir, ref):
-                    return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid."}
+                if not _verify_existing_clone(clone_dir, ref, expected_repo_url=repo_value):
+                    return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid or points to a different repo."}
             else:
                 if not _clone_repo(repo_value, clone_dir, ref):
                     return {
@@ -338,8 +378,8 @@ def resolve(args):
 
         if _is_remote_url(repo_value):
             if clone_dir.exists():
-                if not _verify_existing_clone(clone_dir, ref):
-                    return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid."}
+                if not _verify_existing_clone(clone_dir, ref, expected_repo_url=repo_value):
+                    return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid or points to a different repo."}
             else:
                 if not _clone_repo(repo_value, clone_dir, ref):
                     return {
@@ -364,8 +404,8 @@ def resolve(args):
             }
 
         if clone_dir.exists():
-            if not _verify_existing_clone(clone_dir, pr_branch):
-                return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid."}
+            if not _verify_existing_clone(clone_dir, pr_branch, expected_repo_url=repo_url):
+                return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid or points to a different repo."}
         else:
             if not _clone_repo(repo_url, clone_dir, pr_branch):
                 return {
@@ -383,12 +423,26 @@ def resolve(args):
         if not repos:
             return {"status": "no_source"}
 
-        # Select repo with most PRs
-        selected_slug = max(repos, key=lambda k: len(repos[k]))
-        selected_prs = repos[selected_slug]
+        # Select repo with most GitHub PRs (GitLab MRs require glab, not yet supported)
+        github_repos = {
+            slug: [pr for pr in prs if pr["type"] == "github"]
+            for slug, prs in repos.items()
+        }
+        github_repos = {slug: prs for slug, prs in github_repos.items() if prs}
+
+        if not github_repos:
+            # Only GitLab MRs found — cannot resolve via gh CLI
+            gitlab_slugs = list(repos.keys())
+            return {
+                "status": "no_source",
+                "message": f"Only GitLab MRs found ({', '.join(gitlab_slugs)}). GitLab resolution not yet supported. Provide --repo manually.",
+            }
+
+        selected_slug = max(github_repos, key=lambda k: len(github_repos[k]))
+        selected_prs = github_repos[selected_slug]
         first_pr_url = selected_prs[0]["url"]
 
-        # Build discovered_repos summary for orchestrator logging
+        # Build discovered_repos summary for orchestrator logging (all providers)
         discovered = {slug: len(prs) for slug, prs in repos.items()}
 
         try:
@@ -400,8 +454,8 @@ def resolve(args):
             }
 
         if clone_dir.exists():
-            if not _verify_existing_clone(clone_dir, pr_branch):
-                return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid."}
+            if not _verify_existing_clone(clone_dir, pr_branch, expected_repo_url=repo_url):
+                return {"status": "error", "message": f"Existing clone at {clone_dir} is invalid or points to a different repo."}
         else:
             if not _clone_repo(repo_url, clone_dir, pr_branch):
                 return {
@@ -447,7 +501,7 @@ def main():
     json.dump(result, sys.stdout, indent=2)
     print()
 
-    if result["status"] == "error":
+    if result["status"] in ("error", "clone_failed"):
         sys.exit(1)
     elif result["status"] == "no_source":
         sys.exit(2)

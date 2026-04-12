@@ -299,7 +299,10 @@ Run steps in the order defined by the YAML. For each step:
 
 ### Before the step
 
-1. Validate input dependencies — for each step name in the step's YAML `inputs`, the referenced upstream step must have `status: "completed"` (or `"skipped"` if the upstream step has a `when` condition) and a non-null `output` folder in the progress file. If any required input step has status `"failed"`, **fail the current step immediately** with a clear error (e.g., "Step 'writing' requires 'planning', but planning has status 'failed'"). Upstream steps that were `skipped` are treated as satisfied — the downstream step is responsible for checking whether the optional input data actually exists
+1. Validate input dependencies — for each step name in the step's YAML `inputs`, check the upstream step's status:
+   - `"completed"` — must also have a non-null `output` folder in the progress file
+   - `"skipped"` (upstream step has a `when` condition) — treated as satisfied even though `output` is `null`. The downstream step is responsible for checking whether the optional input data actually exists
+   - `"failed"` — **fail the current step immediately** with a clear error (e.g., "Step 'writing' requires 'planning', but planning has status 'failed'")
 2. Update the step's status to `"in_progress"` in the progress file
 
 ### Construct arguments
@@ -442,3 +445,7 @@ When `--repo` is passed to the requirements step, the `requirements-analyst` age
 - If no `--pr` was provided, use the repo structure itself to identify the key components and features that need documentation
 
 This work requires changes to the `requirements-analyst` agent definition (`agents/requirements-analyst.md`), not just the step skill.
+
+### GitLab MR resolution
+
+`resolve_source.py` discovers GitLab MRs during requirements scanning but cannot resolve them automatically — `gh pr view` is GitHub-only. When only GitLab MRs are found, the script returns `no_source` with a message prompting the user to provide `--repo` manually. Future work: add `glab` CLI support or GitLab API integration for automatic MR resolution.
