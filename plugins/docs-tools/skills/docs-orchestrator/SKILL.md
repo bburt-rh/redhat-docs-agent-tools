@@ -52,7 +52,6 @@ bash ${CLAUDE_SKILL_DIR}/scripts/setup-hooks.sh
 
 - `--repo-path <path>` — Target repository for UPDATE-IN-PLACE mode. The docs-writer agent explores this directory for framework detection and writes files there, instead of writing to the repository at the current working directory. **Precedence**: if both `--repo-path` and `--draft` are passed, `--repo-path` wins — log a warning and ignore `--draft`
 - `--repo <url-or-path>` — Source code repository. Can be a local path or a remote URL (https://, git@, ssh://). When provided without `--pr`, enables repo-driven documentation mode where the entire repo (or scoped subdirectories) is the subject matter. When provided alongside `--pr`, the PR branch is checked out within the provided repo.
->>>>>>> e4cd7e9 (feat: Add source repo orchestration and post-requirements auto-discovery)
 - `--create-jira <PROJECT>` — Create a linked JIRA ticket in the specified project
 
 ## Resolve source repository
@@ -199,7 +198,6 @@ Use this absolute `BASE_PATH` for the progress file's `base_path` field and for 
 artifacts/proj-123/
   source.yaml                        (per-ticket source config, if applicable)
   code-repo/                         (cloned source repo, if applicable)
->>>>>>> e4cd7e9 (feat: Add source repo orchestration and post-requirements auto-discovery)
   requirements/
     requirements.md
   planning/
@@ -309,7 +307,6 @@ Run steps in the order defined by the YAML. For each step:
 
 Build the args string for the step skill:
 
-<<<<<<< HEAD
 1. **Always**: `<ticket> --base-path <base_path>` — the ticket ID and the **absolute** base output path
 2. **If source repo is resolved**: `--repo <repo_path>` — passed to steps that can use it
 3. **From orchestrator context**: Step-specific args from parsed CLI flags:
