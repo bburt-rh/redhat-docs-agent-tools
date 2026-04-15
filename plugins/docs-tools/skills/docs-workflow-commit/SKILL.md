@@ -2,7 +2,7 @@
 name: docs-workflow-commit
 description: Commit manifest-listed files and push the feature branch to the remote. Works in both local (current directory) and ACP (cloned repo) environments. Skipped in draft mode.
 model: claude-haiku-4-5@20251001
-argument-hint: <ticket> --base-path <path> [--repo-path <path>] [--draft] [--dry-run]
+argument-hint: <ticket> --base-path <path> [--repo-path <path>] [--draft]
 allowed-tools: Bash, Read
 ---
 
@@ -18,7 +18,6 @@ Step skill for the docs-orchestrator pipeline. Commits documentation files liste
 - `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
 - `--repo-path <path>` — Target repository path. If omitted, uses the current working directory
 - `--draft` — If present, skip committing entirely
-- `--dry-run` — Show what would be committed and pushed without making changes
 
 ## Input
 
@@ -41,13 +40,13 @@ Contains branch name, commit SHA, files committed, platform, repo URL, and push 
 Run the commit script, passing through all arguments:
 
 ```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/commit.sh <ticket> --base-path <base-path> [--repo-path <path>] [--draft] [--dry-run]
+bash ${CLAUDE_SKILL_DIR}/scripts/commit.sh <ticket> --base-path <base-path> [--repo-path <path>] [--draft]
 ```
 
 The script handles:
 
 1. **Draft mode check** — writes a skip record and exits if `--draft` is set
-2. **Context resolution** — determines repo path, branch, platform, and remote URL from (in order): `repo-info.json` if it exists, `--repo-path` argument, or current working directory git context
+2. **Context resolution** — determines repo path, branch, platform, and remote URL from `--repo-path` argument or current working directory git context
 3. **Safety checks** — refuses to push to `main`/`master`, refuses to push if in the agent-tools repo (contains `adapters/ambient/`)
 4. **Manifest reading** — extracts file paths from `<base-path>/writing/_index.md`
 5. **Commit** — stages manifest-listed files and commits with a descriptive message

@@ -27,7 +27,6 @@ Written by the `docs-workflow-commit` step skill to `artifacts/<ticket>/commit/c
 | `platform` | string\|null | `github`, `gitlab`, or `unknown` |
 | `repo_url` | string\|null | Target repo URL |
 | `pushed` | boolean | Whether the branch was pushed to remote |
-| `skip_reason` | string | Present only for intentional skips (draft mode, no manifest, etc.), absent on push failures |
 
 ## mr-info.json schema
 
