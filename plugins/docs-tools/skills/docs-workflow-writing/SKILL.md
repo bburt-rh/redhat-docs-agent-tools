@@ -2,95 +2,58 @@
 name: docs-workflow-writing
 description: Write documentation from a documentation plan. Dispatches the docs-writer agent. Supports AsciiDoc (default) and MkDocs formats. Default placement is UPDATE-IN-PLACE; use --draft for staging area. Also supports fix mode for applying technical review corrections.
 argument-hint: <ticket> --base-path <path> --format <adoc|mkdocs> [--draft] [--repo-path <path>] [--fix-from <review_path>]
-allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent, WebSearch, WebFetch
+allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, Agent
 ---
 
 # Documentation Writing Step
 
-Step skill for the docs-orchestrator pipeline. Follows the step skill contract: **parse args → dispatch agent → write output**.
-
-Supports four modes:
-- **Default mode (UPDATE-IN-PLACE)**: Detect the repo's build framework and write files directly to the correct repo locations. Create a manifest listing files written.
-- **Repo-path mode (`--repo-path`)**: Same as UPDATE-IN-PLACE but targets a specific repository path (e.g., an external clone). Takes precedence over `--draft`.
-- **Draft mode (`--draft`)**: Write files to a staging area under `<base-path>/writing/`. No framework detection, no repo modifications.
-- **Fix mode (`--fix-from`)**: Apply targeted corrections from a technical review.
-
-## Arguments
-
-### Normal mode
-
-- `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path (e.g., `artifacts/proj-123`)
-- `--format <adoc|mkdocs>` — Output format (default: `adoc`)
-- `--draft` — Use DRAFT placement mode (staging area) instead of UPDATE-IN-PLACE
-- `--repo-path <path>` — Target repository path for UPDATE-IN-PLACE mode. When set, the docs-writer explores this directory for framework detection and writes files there. Takes precedence over `--draft`
-
-### Fix mode
-
-- `$1` — JIRA ticket ID (required)
-- `--base-path <path>` — Base output path
-- `--fix-from <path>` — Technical review output file (triggers fix mode)
-
-## Input
-
-```
-<base-path>/planning/plan.md
-```
-
-## Output
-
-**UPDATE-IN-PLACE mode (default and `--repo-path`):**
-
-Files are written directly to their correct repo locations (or the `--repo-path` directory). A manifest is created at:
-
-```
-<base-path>/writing/_index.md
-```
-
-The manifest uses **absolute paths** and includes all intentional changes (created and modified files). When `--repo-path` is set, the manifest header records `Target repo: <path>`.
-
-**Draft mode (`--draft`):**
-
-```
-<base-path>/writing/
-  _index.md
-  assembly_*.adoc        (AsciiDoc mode)
-  modules/*.adoc         (AsciiDoc mode)
-  mkdocs-nav.yml         (MkDocs mode)
-  docs/*.md              (MkDocs mode)
-```
+Step skill for the docs-orchestrator pipeline. Follows the step skill contract: **run script → dispatch agent → verify output**.
 
 ## Execution
 
-### 1. Parse arguments
+### 1. Run the script
 
-Extract the ticket ID, `--base-path`, `--format`, `--draft`, and `--repo-path` from the args string.
-
-If `--fix-from` is present, operate in **fix mode**. Otherwise, determine placement mode:
-- If `--repo-path` is set → UPDATE-IN-PLACE targeting the specified path (ignore `--draft` with a warning if both are set)
-- If `--draft` is set → DRAFT mode
-- Otherwise → UPDATE-IN-PLACE in the current working directory
-
-Set the paths:
+Run the build script to parse arguments, validate inputs, determine mode, and create output directories:
 
 ```bash
-INPUT_FILE="${BASE_PATH}/planning/plan.md"
-OUTPUT_DIR="${BASE_PATH}/writing"
-OUTPUT_FILE="${OUTPUT_DIR}/_index.md"
-mkdir -p "$OUTPUT_DIR"
+bash ${CLAUDE_SKILL_DIR}/scripts/build_writing_args.sh <args>
 ```
 
-### 2a. UPDATE-IN-PLACE mode (default — no `--draft`)
+Pass through the full args string. The script emits JSON on stdout:
+
+```json
+{
+  "mode":          "update-in-place | draft | fix",
+  "ticket":        "PROJ-123",
+  "format":        "adoc | mkdocs",
+  "input_file":    "<base-path>/planning/plan.md",
+  "output_dir":    "<base-path>/writing",
+  "output_file":   "<base-path>/writing/_index.md",
+  "repo_path":     "<path> | null",
+  "fix_from":      "<path> | null",
+  "verify_output": true | false
+}
+```
+
+If the script exits non-zero, stop and report the error from stderr.
+
+### 2. Dispatch the docs-writer agent
 
 **You MUST use the Agent tool** to invoke the `docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
 
-**Agent tool parameters:**
+Select the prompt based on `mode` and `format` from the JSON output. In every prompt below, substitute the `<TICKET>`, `<INPUT_FILE>`, `<OUTPUT_FILE>`, `<OUTPUT_DIR>`, and `<REPO_PATH>` placeholders with the corresponding values from the script's JSON.
+
+**Agent tool parameters for all modes:**
 - `subagent_type`: `docs-writer`
-- `description`: `Write <format> documentation for <TICKET>`
+- `description`: use the value described under each mode below
 
-When `--repo-path` is set, replace references to "the repository" with the specific path. The docs-writer agent must explore **that directory** for framework detection and write files there.
+---
 
-**Prompt for AsciiDoc** — pass as the `prompt` parameter to the Agent tool:
+#### Mode: `update-in-place`, format: `adoc`
+
+**Description:** `Write adoc documentation for <TICKET>`
+
+**Prompt:**
 
 > Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
 >
@@ -100,7 +63,7 @@ When `--repo-path` is set, replace references to "the repository" with the speci
 >
 > **Placement mode: UPDATE-IN-PLACE**
 >
-> [If `--repo-path` is set: "The target repository is at `<REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
+> [If `repo_path` is not null: "The target repository is at `<REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
 >
 > Place files directly in the repository following existing conventions. Before writing any files:
 > 1. Detect the repository's documentation build framework (Antora, ccutil, Sphinx, etc.)
@@ -111,9 +74,15 @@ When `--repo-path` is set, replace references to "the repository" with the speci
 >
 > Create a manifest at `<OUTPUT_FILE>` listing **all files written and modified** with **absolute paths**. The manifest must include every intentional change — both new files created and existing files modified (e.g., nav/TOC updates).
 >
-> [If `--repo-path` is set: "Record `Target repo: <REPO_PATH>` in the manifest header."]
+> [If `repo_path` is not null: "Record `Target repo: <REPO_PATH>` in the manifest header."]
 
-**Prompt for MkDocs** — pass as the `prompt` parameter to the Agent tool:
+---
+
+#### Mode: `update-in-place`, format: `mkdocs`
+
+**Description:** `Write mkdocs documentation for <TICKET>`
+
+**Prompt:**
 
 > Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
 >
@@ -123,7 +92,7 @@ When `--repo-path` is set, replace references to "the repository" with the speci
 >
 > **Placement mode: UPDATE-IN-PLACE**
 >
-> [If `--repo-path` is set: "The target repository is at `<REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
+> [If `repo_path` is not null: "The target repository is at `<REPO_PATH>`. Explore **that directory** for framework detection and write files there."]
 >
 > Place files directly in the repository following existing conventions. Before writing any files:
 > 1. Detect the repository's documentation build framework (MkDocs, Docusaurus, Hugo, etc.)
@@ -134,17 +103,15 @@ When `--repo-path` is set, replace references to "the repository" with the speci
 >
 > Create a manifest at `<OUTPUT_FILE>` listing **all files written and modified** with **absolute paths**. The manifest must include every intentional change — both new files created and existing files modified (e.g., `mkdocs.yml` nav updates).
 >
-> [If `--repo-path` is set: "Record `Target repo: <REPO_PATH>` in the manifest header."]
+> [If `repo_path` is not null: "Record `Target repo: <REPO_PATH>` in the manifest header."]
 
-### 2b. DRAFT mode (`--draft`)
+---
 
-**You MUST use the Agent tool** to invoke the `docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
+#### Mode: `draft`, format: `adoc`
 
-**Agent tool parameters:**
-- `subagent_type`: `docs-writer`
-- `description`: `Write <format> documentation for <TICKET>`
+**Description:** `Write adoc documentation for <TICKET>`
 
-**Prompt for AsciiDoc draft** — pass as the `prompt` parameter to the Agent tool:
+**Prompt:**
 
 > Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
 >
@@ -171,7 +138,13 @@ When `--repo-path` is set, replace references to "the repository" with the speci
 > Save assemblies to: `<OUTPUT_DIR>/`
 > Create index at: `<OUTPUT_FILE>`
 
-**Prompt for MkDocs draft** — pass as the `prompt` parameter to the Agent tool:
+---
+
+#### Mode: `draft`, format: `mkdocs`
+
+**Description:** `Write mkdocs documentation for <TICKET>`
+
+**Prompt:**
 
 > Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
 >
@@ -198,21 +171,17 @@ When `--repo-path` is set, replace references to "the repository" with the speci
 > Create nav fragment at: `<OUTPUT_DIR>/mkdocs-nav.yml`
 > Create index at: `<OUTPUT_FILE>`
 
-### 2c. Fix mode
+---
 
-When invoked with `--fix-from`, the skill applies targeted corrections to existing drafts.
+#### Mode: `fix`
 
-**You MUST use the Agent tool** to invoke the `docs-writer` subagent. Do NOT read the agent's markdown file or attempt to perform the agent's work yourself — the agent has a specialized system prompt and must run as an isolated subagent.
+**Description:** `Fix documentation for <TICKET>`
 
-**Agent tool parameters:**
-- `subagent_type`: `docs-writer`
-- `description`: `Fix documentation for <TICKET>`
-
-**Prompt** (pass this as the `prompt` parameter to the Agent tool):
+**Prompt:**
 
 > Apply fixes to documentation drafts based on technical review feedback for ticket `<TICKET>`.
 >
-> Read the review report from: `<FIX_FROM_PATH>`
+> Read the review report from: `<FIX_FROM>`
 > Drafts location: `<OUTPUT_DIR>/`
 >
 > For each issue flagged in the review:
@@ -224,8 +193,10 @@ When invoked with `--fix-from`, the skill applies targeted corrections to existi
 
 In fix mode, the skill does not create new modules or restructure content.
 
+---
+
 ### 3. Verify output
 
-**Normal mode (both UPDATE-IN-PLACE and DRAFT)**: Check that `_index.md` exists at `<OUTPUT_FILE>`.
+If `verify_output` is `true` in the script's JSON output, check that `output_file` exists.
 
-**Fix mode**: No output verification needed — files are edited in place.
+If `verify_output` is `false` (fix mode), no verification is needed — files are edited in place.
