@@ -105,11 +105,15 @@
     },
     {
       "tool": "gh",
-      "found_in": []
+      "found_in": [
+        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.sh"
+      ]
     },
     {
       "tool": "glab",
-      "found_in": []
+      "found_in": [
+        "plugins/docs-tools/skills/docs-workflow-create-mr/scripts/create_mr.sh"
+      ]
     },
     {
       "tool": "jq",
