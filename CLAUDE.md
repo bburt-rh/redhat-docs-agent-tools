@@ -44,6 +44,18 @@ If either file cannot be read, STOP and report the error.
 
 **Reference files** under `plugins/<name>/reference/` contain domain knowledge (frameworks, templates, style guides) shared across agents. Agents MUST read them at runtime via the Read tool — they are not automatically injected.
 
+## Skill logic must live in scripts
+
+Skills that contain procedural logic — argument parsing, mode determination, input validation, path computation, directory creation — **must defer that logic to a script** under `skills/<skill-name>/scripts/`. The SKILL.md itself should only contain:
+
+- Frontmatter and description
+- Instructions to run the script and capture its output
+- Domain knowledge (prompt templates, checklists, review criteria)
+- Agent dispatch instructions referencing the script's output
+- Output verification
+
+Do NOT embed procedural logic (conditionals, path construction, validation) inline in SKILL.md. If a skill needs to make decisions before dispatching an agent, those decisions belong in a script that emits structured output (typically JSON on stdout, errors on stderr).
+
 ## Authoring skills, agents, and plugins — Anthropic documentation compliance
 
 When creating or modifying skills, agents, hooks, or plugin components, follow the official Anthropic documentation. Do NOT rely on training data for schemas, frontmatter fields, or best practices — use WebFetch to consult the canonical docs listed below before generating any component.

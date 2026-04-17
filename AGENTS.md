@@ -22,11 +22,11 @@ plugins/<name>/
 
 ## Skill naming convention
 
-Use bare skill names for portability. Qualified names (`plugin:skill`) are only needed to disambiguate when two plugins have the same skill name:
+Use qualified names (`plugin:skill`) in workflow YAMLs and skill-to-skill invocations — these resolve reliably via the plugin registry regardless of which repo the session runs from. Bare names only resolve when `.claude/skills/` symlinks exist in the current project:
 
-- `jira-reader` (not `docs-tools:jira-reader`)
-- `rh-ssg-formatting` (not `docs-tools:rh-ssg-formatting`)
-- `lint-with-vale` (not `vale-tools:lint-with-vale`)
+- In YAML step lists: `docs-tools:docs-workflow-requirements` (qualified)
+- In Skill invocations from skills: `docs-tools:docs-workflow-writing` (qualified)
+- In user prompts (interactive): `jira-reader` (bare is fine — user can retry with qualified name)
 
 ## Calling scripts from skills and commands
 

@@ -40,6 +40,14 @@
       "description": "CQA 2.1 Content Quality Assessment toolkit for Red Hat modular documentation. Assess, fix, and score 54 parameters across Pre-migration, Quality, and Onboarding tabs.",
       "category": "documentation",
       "tags": ["cqa", "dita", "documentation", "quality", "assessment", "modular-docs", "vale"]
+    },
+    {
+      "name": "rhivos-tools",
+      "source": "./plugins/rhivos-tools",
+      "description": "RHIVOS 2.0 Core documentation pipeline. Maps upstream CentOS Automotive SIG content to downstream Red Hat modular AsciiDoc using JTBD restructuring and style governance.",
+      "version": "1.0.1",
+      "category": "documentation",
+      "tags": ["rhivos", "automotive", "asciidoc", "jtbd", "modular-docs", "conversion"]
     }
   ]
 }
