@@ -14,6 +14,12 @@ workflow:
       description: Create documentation plan
       inputs: [requirements]
 
+    - name: code-evidence
+      skill: docs-tools:docs-workflow-code-evidence
+      description: Retrieve code evidence from source repository
+      when: has_source_repo
+      inputs: [planning]
+
     - name: prepare-branch
       skill: docs-tools:docs-workflow-prepare-branch
       description: Create a fresh branch from latest upstream default branch
@@ -22,7 +28,7 @@ workflow:
     - name: writing
       skill: docs-tools:docs-workflow-writing
       description: Write documentation
-      inputs: [planning, prepare-branch]
+      inputs: [planning, prepare-branch, code-evidence]
 
     - name: technical-review
       skill: docs-tools:docs-workflow-tech-review

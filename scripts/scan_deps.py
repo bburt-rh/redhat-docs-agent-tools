@@ -95,6 +95,7 @@ KNOWN_SYSTEM_TOOLS = {"vale", "jq", "curl", "gcloud", "gh", "glab"}
 ALWAYS_INCLUDE_SYSTEM = {"gcloud", "gh", "glab"}
 
 
+
 def scan_python_imports(filepath: Path) -> set[str]:
     """Parse a Python file with ast and return top-level import names."""
     try:
@@ -141,6 +142,54 @@ def scan_shell_gems(filepath: Path) -> set[str]:
         if re.search(rf'gem\s+install\s+.*\b{re.escape(gem_name)}\b', content):
             found.add(gem_name)
     return found
+
+
+def parse_skill_frontmatter(filepath: Path) -> dict[str, list[str]]:
+    """Parse SKILL.md YAML frontmatter and return the dependencies field.
+
+    Returns a dict like {"python": ["code-finder"], "system": ["git"]}.
+    Uses a minimal parser — no PyYAML dependency required.
+    """
+    try:
+        content = filepath.read_text()
+    except (OSError, UnicodeDecodeError):
+        return {}
+
+    # Extract frontmatter between --- markers
+    if not content.startswith("---"):
+        return {}
+    end = content.find("\n---", 3)
+    if end == -1:
+        return {}
+    frontmatter = content[4:end]
+
+    # Find the dependencies: block
+    dep_match = re.search(r"^dependencies:\s*$", frontmatter, re.MULTILINE)
+    if not dep_match:
+        return {}
+
+    deps: dict[str, list[str]] = {}
+    current_category = None
+
+    for line in frontmatter[dep_match.end():].split("\n"):
+        # Stop at the next top-level key (no leading whitespace)
+        if line and not line[0].isspace():
+            break
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Category line like "python:" or "ruby:" or "system:"
+        cat_match = re.match(r"^(\w+):\s*$", stripped)
+        if cat_match:
+            current_category = cat_match.group(1)
+            deps[current_category] = []
+            continue
+        # List item like "- code-finder"
+        item_match = re.match(r"^-\s+(.+)$", stripped)
+        if item_match and current_category is not None:
+            deps[current_category].append(item_match.group(1).strip())
+
+    return deps
 
 
 def scan_shell_system_tools(filepath: Path) -> set[str]:
@@ -194,6 +243,17 @@ def scan_all() -> dict:
         for gem in scan_shell_gems(sh_file):
             ruby_deps.setdefault(gem, []).append(rel)
         for tool in scan_shell_system_tools(sh_file):
+            system_deps.setdefault(tool, []).append(rel)
+
+    # Scan SKILL.md frontmatter for declared dependencies
+    for skill_file in sorted(PLUGINS_DIR.rglob("SKILL.md")):
+        rel = relative_path(skill_file)
+        deps = parse_skill_frontmatter(skill_file)
+        for pkg in deps.get("python", []):
+            python_deps.setdefault(pkg, []).append(rel)
+        for gem in deps.get("ruby", []):
+            ruby_deps.setdefault(gem, []).append(rel)
+        for tool in deps.get("system", []):
             system_deps.setdefault(tool, []).append(rel)
 
     # Build sorted output

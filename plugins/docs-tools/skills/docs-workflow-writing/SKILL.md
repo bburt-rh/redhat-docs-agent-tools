@@ -27,6 +27,8 @@ Pass through the full args string. The script emits JSON on stdout:
   "ticket":        "PROJ-123",
   "format":        "adoc | mkdocs",
   "input_file":    "<base-path>/planning/plan.md",
+  "evidence_file": "<base-path>/code-evidence/evidence.json | null",
+  "has_evidence":  true | false,
   "output_dir":    "<base-path>/writing",
   "output_file":   "<base-path>/writing/_index.md",
   "repo_path":     "<path> | null",
@@ -59,6 +61,8 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 >
 > Read the plan from: `<INPUT_FILE>`
 >
+> **[Include only if HAS_EVIDENCE=true]** Code evidence is available at `<EVIDENCE_FILE>`. Read it and use the `source_results` for accurate function signatures, parameter types, and code examples. Use `context_results` for narrative context, installation steps, and architectural patterns. Prefer evidence over assumptions — if the evidence contradicts the plan, follow the evidence.
+>
 > **IMPORTANT**: Write COMPLETE .adoc files, not summaries or outlines.
 >
 > **Placement mode: UPDATE-IN-PLACE**
@@ -88,6 +92,8 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 >
 > Read the plan from: `<INPUT_FILE>`
 >
+> **[Include only if HAS_EVIDENCE=true]** Code evidence is available at `<EVIDENCE_FILE>`. Read it and use the `source_results` for accurate function signatures, parameter types, and code examples. Use `context_results` for narrative context, installation steps, and architectural patterns. Prefer evidence over assumptions — if the evidence contradicts the plan, follow the evidence.
+>
 > **IMPORTANT**: Write COMPLETE .md files with YAML frontmatter (title, description). Use Material for MkDocs conventions: admonitions, content tabs, code blocks with titles, heading hierarchy starting at `# h1`.
 >
 > **Placement mode: UPDATE-IN-PLACE**
@@ -116,6 +122,8 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 > Write complete AsciiDoc documentation based on the documentation plan for ticket `<TICKET>`.
 >
 > Read the plan from: `<INPUT_FILE>`
+>
+> **[Include only if HAS_EVIDENCE=true]** Code evidence is available at `<EVIDENCE_FILE>`. Read it and use the `source_results` for accurate function signatures, parameter types, and code examples. Use `context_results` for narrative context, installation steps, and architectural patterns. Prefer evidence over assumptions — if the evidence contradicts the plan, follow the evidence.
 >
 > **IMPORTANT**: Write COMPLETE .adoc files, not summaries or outlines.
 >
@@ -149,6 +157,8 @@ Select the prompt based on `mode` and `format` from the JSON output. In every pr
 > Write complete Material for MkDocs Markdown documentation based on the documentation plan for ticket `<TICKET>`.
 >
 > Read the plan from: `<INPUT_FILE>`
+>
+> **[Include only if HAS_EVIDENCE=true]** Code evidence is available at `<EVIDENCE_FILE>`. Read it and use the `source_results` for accurate function signatures, parameter types, and code examples. Use `context_results` for narrative context, installation steps, and architectural patterns. Prefer evidence over assumptions — if the evidence contradicts the plan, follow the evidence.
 >
 > **IMPORTANT**: Write COMPLETE .md files with YAML frontmatter (title, description). Use Material for MkDocs conventions: admonitions, content tabs, code blocks with titles, heading hierarchy starting at `# h1`.
 >
