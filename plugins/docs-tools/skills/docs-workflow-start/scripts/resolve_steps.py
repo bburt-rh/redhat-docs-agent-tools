@@ -98,6 +98,19 @@ def parse_workflow_yaml(path):
     return steps
 
 
+def validate_inputs(steps_list, step_map):
+    """Check that all input references point to existing steps."""
+    errors = []
+    for step in steps_list:
+        for dep in step["inputs"]:
+            if dep not in step_map:
+                errors.append(
+                    "Step '%s' references unknown input '%s'"
+                    % (step["name"], dep)
+                )
+    return errors
+
+
 def resolve_transitive_deps(steps_list, requested):
     """Walk the inputs graph to compute all needed steps.
 
@@ -142,6 +155,19 @@ def main():
     steps_list = parse_workflow_yaml(args.yaml)
     step_map = {s["name"]: s for s in steps_list}
     valid_names = sorted(s["name"] for s in steps_list)
+
+    input_errors = validate_inputs(steps_list, step_map)
+    if input_errors:
+        json.dump(
+            {
+                "error": "Invalid input dependencies in workflow YAML",
+                "details": input_errors,
+                "valid_steps": valid_names,
+            },
+            sys.stdout,
+            indent=2,
+        )
+        sys.exit(1)
 
     invalid = [s for s in args.steps if s not in step_map]
     if invalid:
