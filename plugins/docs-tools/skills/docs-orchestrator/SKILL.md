@@ -32,6 +32,8 @@ if [[ -z "${JIRA_API_TOKEN:-}" ]]; then
 fi
 ```
 
+**This env sourcing runs ONCE during pre-flight only.** Do not prepend `source ~/.env` or `set -a && source ~/.env && set +a` to individual bash commands — Python scripts (jira_reader.py, etc.) load `~/.env` themselves.
+
 1. If `JIRA_API_TOKEN` is still unset:
    - In interactive mode: **STOP** and ask the user to set it in `~/.env`
    - In headless mode (no user interaction available, e.g., ACP): log a warning and continue — agents will use `~/.env` credentials for JIRA access (populated by `setup.sh`)
