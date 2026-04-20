@@ -30,9 +30,11 @@ Same argument set as docs-orchestrator:
 Skill: docs-orchestrator, args: "<all original args>"
 ```
 
-**Interactive mode**: If no `--` switches are present (bare invocation or just a ticket ID), proceed to the interactive input gathering below.
+**Interactive mode**: If no `--` switches are present (bare invocation or just a ticket ID), proceed to the interactive input gathering below. **Do NOT invoke the orchestrator until all interactive questions have been answered and CLI flags have been constructed.**
 
 ## Interactive input gathering
+
+You MUST complete ALL interactive questions below before invoking the orchestrator or any step skill. Do not skip ahead after obtaining the ticket ID.
 
 ### Get ticket ID
 
@@ -40,9 +42,9 @@ If no ticket ID was provided in args, ask the user conversationally:
 
 > What is the JIRA ticket ID? (e.g., PROJ-123)
 
-The ticket ID is required for all modes.
+The ticket ID is required for all modes. After obtaining it, proceed to Call 1 — do NOT invoke the orchestrator yet.
 
-### Call 1 — Action selection
+### Call 1 — Action selection (MANDATORY)
 
 Use AskUserQuestion with 1 question:
 
@@ -62,7 +64,7 @@ Skill: docs-orchestrator, args: "<ticket>"
 
 The orchestrator detects the existing progress file and resumes automatically. STOP here — do not continue to Call 2.
 
-### Call 2 — Configuration
+### Call 2 — Configuration (MANDATORY for full workflow and specific steps)
 
 #### If "Run full workflow" was selected
 
@@ -179,6 +181,8 @@ AsciiDoc format and current repo placement are defaults — no flags needed.
 **Precedence**: If both `--repo-path` and `--draft` would be set, `--repo-path` wins — log a warning and omit `--draft` (matches orchestrator behavior).
 
 ## Execute: Full workflow
+
+Only reach this section after ALL interactive questions (Calls 1–2 and free-text follow-ups) have been completed and CLI flags have been constructed.
 
 Invoke the orchestrator with the ticket ID and all constructed flags:
 
