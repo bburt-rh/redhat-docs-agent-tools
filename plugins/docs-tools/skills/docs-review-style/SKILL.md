@@ -375,10 +375,10 @@ If detection fails, stop with:
 Fetch PR metadata to determine the source branch:
 
 ```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info "${PR_URL}" --json
+HEAD_REF=$(python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info "${PR_URL}" --field head_ref)
+BASE_REF=$(python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info "${PR_URL}" --field base_ref)
+TITLE=$(python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py info "${PR_URL}" --field title)
 ```
-
-From the JSON output, extract `head_ref` (source branch), `base_ref` (target branch), and `title` (PR title).
 
 Check whether the current branch matches `head_ref`:
 
@@ -439,7 +439,7 @@ Before presenting comments, categorize each one:
 | **Question** | Requests for clarification, questions from reviewer | Present but do not auto-suggest a fix |
 | **Outdated** | Already addressed by subsequent commits | Skip automatically |
 
-For **Outdated** detection: read the file at the comment's `path` and `line`. If the content no longer matches what the comment references (the reviewer's quoted text or the line context), mark as outdated.
+For **Outdated** detection: read the file at the comment's `path` and `line`. If the content no longer matches what the comment references, mark as outdated. Extract the reviewer's quoted text from markdown blockquotes (`>` lines) in the `body` field. If no blockquotes are present, fall back to comparing against the line context.
 
 ## Step 5: Process each comment interactively
 
