@@ -5,6 +5,7 @@
 # Usage: prepare_branch.sh <ticket-id> --base-path <path> [--draft] [--repo-path <path>]
 #
 # Outputs: <base-path>/prepare-branch/branch-info.md
+#          <base-path>/prepare-branch/step-result.json
 
 set -euo pipefail
 
