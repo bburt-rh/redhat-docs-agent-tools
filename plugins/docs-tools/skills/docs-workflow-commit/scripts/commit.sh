@@ -121,6 +121,7 @@ if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
 fi
 
 # --- Read manifest ---
+SIDECAR="${BASE_PATH}/writing/step-result.json"
 MANIFEST="${BASE_PATH}/writing/_index.md"
 REPO_DIR_ABS="$(cd "$REPO_DIR" && pwd)"
 
@@ -147,6 +148,7 @@ with open(sys.argv[2]) as f:
 else
   echo "No manifest or step-result.json found."
   write_commit_info false
+  write_step_result false true "no_changes"
   exit 0
 fi
 
