@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: main
+          ref: acp
 
       - name: Sync symlinks
         run: ./scripts/sync-claude-symlinks.sh
