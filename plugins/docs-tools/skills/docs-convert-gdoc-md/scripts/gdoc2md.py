@@ -349,9 +349,7 @@ def insert_comment_footnotes(
 
     footnotes: list[str] = []
     fn_index = 1
-    used_positions: set[int] = set()
-
-    norm_md = _normalize(markdown)
+    used_offsets: set[int] = set()
 
     for comment in comments:
         anchor = comment["quoted_text"]
@@ -366,18 +364,19 @@ def insert_comment_footnotes(
 
         norm_anchor = _normalize(anchor) if anchor else ""
         if norm_anchor:
+            norm_md = _normalize(markdown)
             search_from = 0
             pos = -1
             while True:
                 candidate = norm_md.find(norm_anchor, search_from)
                 if candidate == -1:
                     break
-                if candidate not in used_positions:
+                orig_end = _find_original_end(markdown, norm_md, candidate, len(norm_anchor))
+                if orig_end not in used_offsets:
                     pos = candidate
                     break
                 search_from = candidate + 1
             if pos != -1:
-                used_positions.add(pos)
                 end_of_anchor = _find_original_end(
                     markdown,
                     norm_md,
@@ -388,8 +387,8 @@ def insert_comment_footnotes(
                     markdown,
                     end_of_anchor,
                 )
+                used_offsets.add(end_of_anchor)
                 markdown = markdown[:end_of_anchor] + label + markdown[end_of_anchor:]
-                norm_md = _normalize(markdown)
                 footnotes.append(footnote_def)
                 fn_index += 1
                 continue
