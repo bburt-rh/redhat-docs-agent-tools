@@ -39,9 +39,7 @@ def _has_asciidoctor() -> bool:
 
 
 requires_pandoc = pytest.mark.skipif(not _has_pandoc(), reason="pandoc not installed")
-requires_asciidoctor = pytest.mark.skipif(
-    not _has_asciidoctor(), reason="asciidoctor not installed"
-)
+requires_asciidoctor = pytest.mark.skipif(not _has_asciidoctor(), reason="asciidoctor not installed")
 
 
 def pandoc_convert(md_path: Path, output_path: Path) -> Path:
@@ -349,6 +347,6 @@ class TestNoMkDocsSyntaxRemains:
         assert "--8<--" not in content
         assert '=== "' not in content
         assert "/// figure-caption" not in content
-        assert re.search(r'```\w+\s+title=', content) is None
-        assert re.search(r'\]\([^)]+\.md\)', content) is None
+        assert re.search(r"```\w+\s+title=", content) is None
+        assert re.search(r"\]\([^)]+\.md\)", content) is None
         assert "```{=asciidoc}" not in content

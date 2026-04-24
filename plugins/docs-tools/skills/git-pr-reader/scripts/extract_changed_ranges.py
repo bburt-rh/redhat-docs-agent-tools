@@ -73,8 +73,12 @@ def parse_diff_linewise(diff_text: str, context: int = 0) -> Dict[str, Union[str
             is_new_file = True
             continue
 
-        if line.startswith("---") or line.startswith("+++") or \
-           line.startswith("index") or line.startswith("deleted file"):
+        if (
+            line.startswith("---")
+            or line.startswith("+++")
+            or line.startswith("index")
+            or line.startswith("deleted file")
+        ):
             continue
 
         if line.startswith("@@") and current_file:
@@ -130,19 +134,11 @@ def _lines_to_ranges(lines: List[int], context: int = 0) -> List[List[int]]:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Extract changed line ranges from unified diff output."
-    )
+    parser = argparse.ArgumentParser(description="Extract changed line ranges from unified diff output.")
     parser.add_argument(
-        "--context", "-C",
-        type=int,
-        default=3,
-        help="Lines of context to include around each change (default: 3)"
+        "--context", "-C", type=int, default=3, help="Lines of context to include around each change (default: 3)"
     )
-    parser.add_argument(
-        "--output", "-o",
-        help="Output file path (default: stdout)"
-    )
+    parser.add_argument("--output", "-o", help="Output file path (default: stdout)")
     args = parser.parse_args()
 
     diff_text = sys.stdin.read()

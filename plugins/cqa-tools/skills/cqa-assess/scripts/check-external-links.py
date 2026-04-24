@@ -101,7 +101,7 @@ def read_file_list(file_list_path, docs_dir):
     if file_list_path == "-":
         lines = sys.stdin.read().splitlines()
     else:
-        with open(file_list_path, "r") as f:
+        with open(file_list_path) as f:
             lines = f.read().splitlines()
     files = []
     for line in lines:
@@ -147,9 +147,9 @@ def extract_urls(filepath, rel_path):
     """
     urls = []
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
-    except (UnicodeDecodeError, IOError):
+    except (OSError, UnicodeDecodeError):
         return urls
 
     lines = content.splitlines()
@@ -168,15 +168,14 @@ def extract_urls(filepath, rel_path):
             # Strip trailing backticks (AsciiDoc inline code artifacts)
             url = url.rstrip("`")
             # Remove AsciiDoc macro syntax trailing brackets
-            url = re.sub(r'\[.*$', '', url)
+            url = re.sub(r"\[.*$", "", url)
             try:
                 parsed = urlparse(url)
                 domain = parsed.netloc.lower()
                 if not domain:
                     continue
                 # Skip placeholder/example URLs
-                if domain in ("example.com", "www.example.com",
-                              "some-extension-url"):
+                if domain in ("example.com", "www.example.com", "some-extension-url"):
                     continue
                 # Skip URLs with unresolved AsciiDoc attributes
                 if "{" in domain or "}" in domain:
@@ -184,12 +183,14 @@ def extract_urls(filepath, rel_path):
                 # Skip placeholder-only URLs (e.g., https://__)
                 if all(c in "_-." for c in domain):
                     continue
-                urls.append({
-                    "url": url,
-                    "domain": domain,
-                    "file": rel_path,
-                    "line_num": line_idx + 1,
-                })
+                urls.append(
+                    {
+                        "url": url,
+                        "domain": domain,
+                        "file": rel_path,
+                        "line_num": line_idx + 1,
+                    }
+                )
             except ValueError:
                 pass
 
@@ -223,9 +224,7 @@ def categorize_domain(domain):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Categorize external links by domain in AsciiDoc docs."
-    )
+    parser = argparse.ArgumentParser(description="Categorize external links by domain in AsciiDoc docs.")
     parser.add_argument(
         "docs_dir",
         help="Path to the documentation repository root",
@@ -234,8 +233,7 @@ def main():
         "--scan-dirs",
         nargs="+",
         default=DEFAULT_SCAN_DIRS,
-        help=("Directories to scan relative to docs_dir "
-              f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
+        help=("Directories to scan relative to docs_dir " f"(default: {' '.join(DEFAULT_SCAN_DIRS)})"),
     )
     parser.add_argument(
         "--file-list",
@@ -332,7 +330,7 @@ def main():
     print(f"  Red Hat: {len(set(u['domain'] for u in by_category.get('Red Hat', [])))}")
     print(f"  Upstream/Community: {len(set(u['domain'] for u in by_category.get('Upstream/Community', [])))}")
     print(f"  Authoritative: {len(set(u['domain'] for u in by_category.get('Authoritative', [])))}")
-    tp_count = len(set(u['domain'] for u in by_category.get('Third-party', [])))
+    tp_count = len(set(u["domain"] for u in by_category.get("Third-party", [])))
     print(f"  Third-party: {tp_count}")
     print(f"Files scanned: {len(files)}")
 

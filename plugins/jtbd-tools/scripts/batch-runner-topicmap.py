@@ -27,7 +27,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-
 STATE_FILE = ".batch-runner-topicmap-state.json"
 
 
@@ -90,7 +89,7 @@ def run_batch(repo: str, books: list[str], distro: str | None, output: str | Non
         return result.returncode == 0
 
     except subprocess.TimeoutExpired:
-        print(f"ERROR: Batch timed out after 1 hour")
+        print("ERROR: Batch timed out after 1 hour")
         return False
     except FileNotFoundError:
         print("ERROR: 'claude' command not found. Ensure Claude Code CLI is installed.")
@@ -100,9 +99,7 @@ def run_batch(repo: str, books: list[str], distro: str | None, output: str | Non
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Batch runner for jtbd-workflow-topicmap skill"
-    )
+    parser = argparse.ArgumentParser(description="Batch runner for jtbd-workflow-topicmap skill")
     parser.add_argument("--repo", required=True, help="Path to repo root")
     parser.add_argument("--books-file", required=True, help="File with book dir names, one per line")
     parser.add_argument("--distro", help="Filter by distro")
@@ -136,15 +133,17 @@ def main():
         state = load_state(state_path)
         completed = set(state["completed"])
         remaining = [b for b in all_books if b not in completed]
-        print(f"Resuming: {len(state['completed'])} completed, {len(state['failed'])} failed, {len(remaining)} remaining")
+        print(
+            f"Resuming: {len(state['completed'])} completed, {len(state['failed'])} failed, {len(remaining)} remaining"
+        )
     else:
         state = {"completed": [], "failed": [], "remaining": list(all_books)}
         remaining = list(all_books)
 
     # Split into batches
-    batches = [remaining[i:i + batch_size] for i in range(0, len(remaining), batch_size)]
+    batches = [remaining[i : i + batch_size] for i in range(0, len(remaining), batch_size)]
 
-    print(f"\nBatch Plan:")
+    print("\nBatch Plan:")
     print(f"  Total books: {len(all_books)}")
     print(f"  Already completed: {len(state['completed'])}")
     print(f"  Remaining: {len(remaining)}")
@@ -193,7 +192,7 @@ def main():
     if state["failed"]:
         print(f"Failed: {len(state['failed'])}")
         print(f"  Books: {', '.join(state['failed'])}")
-        print(f"\nTo retry failed books, create a new books file with the failed entries and run again.")
+        print("\nTo retry failed books, create a new books file with the failed entries and run again.")
 
     # Clean up state file on full completion
     if not state["failed"] and not state["remaining"]:
