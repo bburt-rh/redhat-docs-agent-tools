@@ -180,7 +180,33 @@ This creates the code-finder index on the first query. The index is cached at `{
 
 Parse the batch retrieval output. For each requirement's query results, classify based on the top-N results:
 
-**Grounded:** top hit `combined_score` >= grounded threshold (default 0.5) AND 2 or more snippets with scores above the absent threshold.
+The batch retrieval output is a JSON array. Each entry has the structure:
+
+```json
+{
+  "query": "...",
+  "filter_paths": null,
+  "result": {
+    "query": "...",
+    "repo_path": "...",
+    "result_count": 5,
+    "results": [
+      {
+        "rank": 1,
+        "file_path": "...",
+        "scores": {"vector": 0.37, "bm25": 17.1, "combined": 0.78},
+        ...
+      }
+    ]
+  }
+}
+```
+
+Results are under `result.results` (not `result.chunks`). Scores are under each result's `scores.combined` (not `combined_score`).
+
+Classify based on the top-N results:
+
+**Grounded:** top hit `scores.combined` >= grounded threshold (default 0.5) AND 2 or more snippets with scores above the absent threshold.
 
 **Partial:** top hit score is between the absent and grounded thresholds, OR only 1 snippet scores above the grounded threshold. This covers cases where a stub, configuration reference, or partial implementation exists but the full feature is unclear.
 
@@ -190,7 +216,7 @@ For each requirement, record:
 - `id`, `title` — from step 3
 - `query` — the search query used
 - `status` — `grounded`, `partial`, or `absent`
-- `top_score` — the highest `combined_score` from the results
+- `top_score` — the highest `scores.combined` from the results
 - `snippet_count` — number of result snippets returned
 - `key_files` — file paths from the top 3 results (deduplicated)
 
