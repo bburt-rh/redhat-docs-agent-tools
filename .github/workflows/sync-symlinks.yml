@@ -4,6 +4,8 @@ on:
     branches:
       - acp
   pull_request:
+    branches:
+      - acp
 
 jobs:
   check:
