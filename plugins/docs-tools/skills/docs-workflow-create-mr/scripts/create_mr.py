@@ -4,6 +4,7 @@
 Usage: python3 create_mr.py <ticket-id> --base-path <path> [--repo-path <path>] [--draft]
 Dependencies: python-gitlab (for GitLab), PyGithub (for GitHub)
 """
+
 import argparse
 import configparser
 import json
@@ -32,6 +33,7 @@ except ImportError:
 # Environment
 # ---------------------------------------------------------------------------
 
+
 def load_env_file():
     """Load environment variables from ~/.env file."""
     env_file = Path.home() / ".env"
@@ -50,35 +52,49 @@ def load_env_file():
 # JSON output helpers
 # ---------------------------------------------------------------------------
 
+
 def write_mr_info(output_dir, platform, url, action, title=None):
     path = output_dir / "mr-info.json"
-    path.write_text(json.dumps({
-        "platform": platform,
-        "url": url,
-        "action": action,
-        "title": title or None,
-    }, indent=2) + "\n")
+    path.write_text(
+        json.dumps(
+            {
+                "platform": platform,
+                "url": url,
+                "action": action,
+                "title": title or None,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
     print(f"Wrote {path}")
 
 
 def write_step_result(output_dir, ticket, url, action, platform, skipped, skip_reason=None):
     path = output_dir / "step-result.json"
-    path.write_text(json.dumps({
-        "schema_version": 1,
-        "step": "create-mr",
-        "ticket": ticket,
-        "completed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "url": url,
-        "action": action,
-        "platform": platform,
-        "skipped": skipped,
-        "skip_reason": skip_reason or None,
-    }, indent=2) + "\n")
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "step": "create-mr",
+                "ticket": ticket,
+                "completed_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "url": url,
+                "action": action,
+                "platform": platform,
+                "skipped": skipped,
+                "skip_reason": skip_reason or None,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def normalize_url(url):
     """Convert SSH git remote URLs to HTTPS."""
@@ -109,7 +125,9 @@ def build_title(base_path, ticket):
             m = re.match(r"^#+\s+(.+)", line.strip())
             if m:
                 heading = re.sub(
-                    rf"^{re.escape(ticket)}\s*[-:]\s*", "", m.group(1),
+                    rf"^{re.escape(ticket)}\s*[-:]\s*",
+                    "",
+                    m.group(1),
                     flags=re.IGNORECASE,
                 )
                 if heading:
@@ -142,15 +160,21 @@ def detect_fork_local(project_path, repo_path):
 # GitLab backend
 # ---------------------------------------------------------------------------
 
+
 class GitLabBackend:
     def __init__(self, host, token):
         if Gitlab is None:
-            print("ERROR: python-gitlab is required. Install it with:\n"
-                  "  python3 -m pip install python-gitlab", file=sys.stderr)
+            print(
+                "ERROR: python-gitlab is required. Install it with:\n"
+                "  python3 -m pip install python-gitlab",
+                file=sys.stderr,
+            )
             sys.exit(1)
         if not token:
-            print("ERROR: GITLAB_TOKEN is required. Set it in ~/.env or your environment.",
-                  file=sys.stderr)
+            print(
+                "ERROR: GITLAB_TOKEN is required. Set it in ~/.env or your environment.",
+                file=sys.stderr,
+            )
             sys.exit(1)
         self.gl = Gitlab(url=host, private_token=token, ssl_verify=True)
 
@@ -167,11 +191,15 @@ class GitLabBackend:
             print(f"WARNING: GitLab API fork detection failed: {e}", file=sys.stderr)
         return ""
 
-    def find_existing_mr(self, project_path, branch):
+    def find_existing_mr(self, project_path, branch, head_project=""):
         """Find an open MR from the given branch."""
         try:
             project = self.gl.projects.get(project_path)
-            mrs = project.mergerequests.list(source_branch=branch, state="opened")
+            filters = {"source_branch": branch, "state": "opened"}
+            if head_project:
+                fork = self.gl.projects.get(head_project)
+                filters["source_project_id"] = fork.id
+            mrs = project.mergerequests.list(**filters)
             if mrs:
                 return mrs[0].web_url
         except Exception as e:
@@ -198,24 +226,34 @@ class GitLabBackend:
 # GitHub backend
 # ---------------------------------------------------------------------------
 
+
 class GitHubBackend:
     def __init__(self, token):
         if Github is None:
-            print("ERROR: PyGithub is required. Install it with:\n"
-                  "  python3 -m pip install PyGithub", file=sys.stderr)
+            print(
+                "ERROR: PyGithub is required. Install it with:\n  python3 -m pip install PyGithub",
+                file=sys.stderr,
+            )
             sys.exit(1)
         if not token:
-            print("ERROR: GITHUB_TOKEN is required. Set it in ~/.env or your environment.",
-                  file=sys.stderr)
+            print(
+                "ERROR: GITHUB_TOKEN is required. Set it in ~/.env or your environment.",
+                file=sys.stderr,
+            )
             sys.exit(1)
         self.gh = Github(auth=Auth.Token(token))
 
     def find_existing_pr(self, owner_repo, branch):
         """Find an open PR from the given branch."""
         try:
-            owner = owner_repo.split("/")[0]
             repo = self.gh.get_repo(owner_repo)
-            prs = repo.get_pulls(head=f"{owner}:{branch}", state="open")
+            if repo.fork and repo.parent:
+                target = repo.parent
+                head = f"{repo.owner.login}:{branch}"
+            else:
+                target = repo
+                head = branch
+            prs = target.get_pulls(head=head, state="open")
             for pr in prs:
                 return pr.html_url
         except Exception as e:
@@ -230,17 +268,16 @@ class GitHubBackend:
             upstream = repo.parent
             head = f"{repo.owner.login}:{branch}"
             print(f"Cross-fork PR: {repo.full_name} -> {upstream.full_name}")
-            pr = upstream.create_pull(title=title, body=description,
-                                      head=head, base=default_branch)
+            pr = upstream.create_pull(title=title, body=description, head=head, base=default_branch)
         else:
-            pr = repo.create_pull(title=title, body=description,
-                                  head=branch, base=default_branch)
+            pr = repo.create_pull(title=title, body=description, head=branch, base=default_branch)
         return pr.html_url
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -291,8 +328,10 @@ def main():
         default_branch = read_json(repo_info_path).get("default_branch", "main")
 
     if not repo_url or not branch:
-        print("ERROR: commit-info.json has pushed=true but is missing branch or repo_url.",
-              file=sys.stderr)
+        print(
+            "ERROR: commit-info.json has pushed=true but is missing branch or repo_url.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     repo_url = normalize_url(repo_url)
@@ -321,11 +360,13 @@ def main():
 
     # --- Platform dispatch ---
     if platform == "gitlab":
-        _handle_gitlab(args, output_dir, ticket, repo_url, branch,
-                       default_branch, title, description, platform)
+        _handle_gitlab(
+            args, output_dir, ticket, repo_url, branch, default_branch, title, description, platform
+        )
     elif platform == "github":
-        _handle_github(output_dir, ticket, repo_url, branch,
-                       default_branch, title, description, platform)
+        _handle_github(
+            output_dir, ticket, repo_url, branch, default_branch, title, description, platform
+        )
     else:
         print(f"ERROR: Unknown platform '{platform}'. Cannot create MR/PR.", file=sys.stderr)
         write_mr_info(output_dir, platform, None, "skipped")
@@ -333,8 +374,9 @@ def main():
         sys.exit(1)
 
 
-def _handle_gitlab(args, output_dir, ticket, repo_url, branch,
-                   default_branch, title, description, platform):
+def _handle_gitlab(
+    args, output_dir, ticket, repo_url, branch, default_branch, title, description, platform
+):
     project_path = re.sub(r"https?://[^/]+/", "", repo_url)
     host_match = re.match(r"(https?://[^/]+)", repo_url)
     host = host_match.group(1) if host_match else "https://gitlab.com"
@@ -354,7 +396,7 @@ def _handle_gitlab(args, output_dir, ticket, repo_url, branch,
         print(f"Cross-fork MR: {head_project} -> {project_path}")
 
     # Check for existing MR
-    existing = backend.find_existing_mr(project_path, branch)
+    existing = backend.find_existing_mr(project_path, branch, head_project)
     if existing:
         print(f"Found existing MR: {existing}")
         write_mr_info(output_dir, platform, existing, "found_existing", title)
@@ -363,8 +405,9 @@ def _handle_gitlab(args, output_dir, ticket, repo_url, branch,
 
     # Create MR
     try:
-        mr_url = backend.create_mr(project_path, head_project, branch,
-                                   default_branch, title, description)
+        mr_url = backend.create_mr(
+            project_path, head_project, branch, default_branch, title, description
+        )
     except Exception as e:
         print(f"ERROR: Failed to create MR: {e}", file=sys.stderr)
         write_mr_info(output_dir, platform, None, "skipped", title)
@@ -376,8 +419,9 @@ def _handle_gitlab(args, output_dir, ticket, repo_url, branch,
     write_step_result(output_dir, ticket, mr_url, "created", platform, False)
 
 
-def _handle_github(output_dir, ticket, repo_url, branch,
-                   default_branch, title, description, platform):
+def _handle_github(
+    output_dir, ticket, repo_url, branch, default_branch, title, description, platform
+):
     owner_repo = re.sub(r"https?://github\.com/", "", repo_url)
     token = os.environ.get("GITHUB_TOKEN")
 
