@@ -116,6 +116,9 @@ def adf_to_text(node):
             rows.append(" | ".join(cells))
         return "\n".join(rows) + "\n"
 
+    if node_type == "inlineCard":
+        return node.get("attrs", {}).get("url", "")
+
     # doc, panel, expand, mediaSingle, etc.: recurse into children
     parts = [adf_to_text(child) for child in content]
     return "".join(parts)
