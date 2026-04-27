@@ -349,7 +349,12 @@ def insert_comment_footnotes(
 
     footnotes: list[str] = []
     fn_index = 1
+
+    # Pass 1: resolve all anchor positions against the *unmodified* markdown
+    # so earlier matches cannot invalidate later ones.
+    norm_md = _normalize(markdown)
     used_offsets: set[int] = set()
+    insertions: list[tuple[int, str, str]] = []
 
     for comment in comments:
         anchor = comment["quoted_text"]
@@ -364,7 +369,6 @@ def insert_comment_footnotes(
 
         norm_anchor = _normalize(anchor) if anchor else ""
         if norm_anchor:
-            norm_md = _normalize(markdown)
             search_from = 0
             pos = -1
             while True:
@@ -377,24 +381,24 @@ def insert_comment_footnotes(
                     break
                 search_from = candidate + 1
             if pos != -1:
-                end_of_anchor = _find_original_end(
-                    markdown,
-                    norm_md,
-                    pos,
-                    len(norm_anchor),
-                )
-                end_of_anchor = _snap_to_word_boundary(
-                    markdown,
-                    end_of_anchor,
-                )
+                end_of_anchor = _find_original_end(markdown, norm_md, pos, len(norm_anchor))
+                end_of_anchor = _snap_to_word_boundary(markdown, end_of_anchor)
                 used_offsets.add(end_of_anchor)
-                markdown = markdown[:end_of_anchor] + label + markdown[end_of_anchor:]
-                footnotes.append(footnote_def)
+                insertions.append((end_of_anchor, label, footnote_def))
                 fn_index += 1
                 continue
 
         footnotes.append(footnote_def)
         fn_index += 1
+
+    # Pass 2: apply insertions from end to start so offsets stay valid.
+    insertions.sort(key=lambda t: t[0], reverse=True)
+    for offset, label, footnote_def in insertions:
+        markdown = markdown[:offset] + label + markdown[offset:]
+        footnotes.append(footnote_def)
+
+    # Re-sort footnotes by their numeric index for consistent output.
+    footnotes.sort(key=lambda f: int(f.split("]")[0].lstrip("[^")))
 
     if footnotes:
         markdown = markdown.rstrip() + "\n\n---\n\n"
