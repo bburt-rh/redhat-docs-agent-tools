@@ -5,10 +5,10 @@ Usage: python3 create_mr.py <ticket-id> --base-path <path> [--repo-path <path>] 
 Dependencies: python-gitlab (for GitLab), PyGithub (for GitHub)
 """
 import argparse
+import configparser
 import json
 import os
 import re
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -121,12 +121,14 @@ def build_title(base_path, ticket):
 def detect_fork_local(project_path, repo_path):
     """Detect fork via local git remotes (no API call needed)."""
     resolve_dir = repo_path or os.getcwd()
+    git_config = Path(resolve_dir) / ".git" / "config"
+    if not git_config.exists():
+        return ""
     try:
-        upstream_url = subprocess.run(  # noqa: S603
-            ["git", "-C", resolve_dir, "remote", "get-url", "upstream"],  # noqa: S607
-            capture_output=True, text=True, check=True,
-        ).stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+        cfg = configparser.ConfigParser()
+        cfg.read(git_config)
+        upstream_url = cfg.get('remote "upstream"', "url")
+    except (configparser.NoSectionError, configparser.NoOptionError):
         return ""
 
     upstream_path = re.sub(r"https?://[^/]+/", "", normalize_url(upstream_url))
