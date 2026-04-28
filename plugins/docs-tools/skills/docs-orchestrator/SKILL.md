@@ -144,7 +144,7 @@ All fields except `repo` are optional. If `scope` is omitted, the entire reposit
 
 - If `--workflow <name>` was specified → `.claude/docs-<name>.yaml`
 - Otherwise → `.claude/docs-workflow.yaml`
-- If the project-level file doesn't exist → fall back to the plugin default at `skills/docs-orchestrator/defaults/docs-<name>.yaml` (or `defaults/docs-workflow.yaml` when no `--workflow` was specified)
+- If the project-level file doesn't exist → fall back to the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml`
 
 ### 2. Read the YAML
 

@@ -46,7 +46,7 @@ The orchestrator looks for workflow YAML in this order:
 
 1. `.claude/docs-<name>.yaml` — if `--workflow <name>` is passed
 2. `.claude/docs-workflow.yaml` — project-level default (when no `--workflow` is specified)
-3. Plugin default — `skills/docs-orchestrator/defaults/docs-<name>.yaml` (or `defaults/docs-workflow.yaml` when no `--workflow` is specified)
+3. Plugin default — `skills/docs-orchestrator/defaults/docs-workflow.yaml`
 
 To customize, download the default into your docs repo and edit it:
 

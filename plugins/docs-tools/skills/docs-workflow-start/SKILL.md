@@ -14,7 +14,7 @@ Interactive entry point for the documentation workflow.
 Same argument set as docs-orchestrator:
 
 - `$1` — JIRA ticket ID (optional at this stage)
-- `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`. Allows running alternative pipelines (e.g., writing-only, review-only). Falls back to the plugin default at `skills/docs-orchestrator/defaults/docs-<name>.yaml` if no project-level YAML exists
+- `--workflow <name>` — Use `.claude/docs-<name>.yaml` instead of `docs-workflow.yaml`. Allows running alternative pipelines (e.g., writing-only, review-only). Falls back to the plugin default at `skills/docs-orchestrator/defaults/docs-workflow.yaml` if no project-level YAML exists
 - `--pr <url>` — PR/MR URLs (repeatable, accumulated into a list). Accepts GitHub PRs (`gh` CLI) and GitLab MRs (`glab` CLI). Used both as requirements input (agent reads diffs/descriptions) and for source repo resolution (repo URL and branch derived from the first PR/MR). When multiple PRs from different repos are provided, all repos are resolved and treated equally as source material
 - `--mkdocs` — Use Material for MkDocs format instead of AsciiDoc. Propagates to the writing step (generates `.md` with MkDocs front matter) and style-review step (applies Markdown-appropriate rules). Sets `options.format` to `"mkdocs"` in the progress file
 - `--draft` — Write documentation to the staging area (`.claude/docs/<ticket>/writing/`) instead of directly into the repo. Uses DRAFT placement mode: no framework detection, no file placement into the target repo. Without this flag, UPDATE-IN-PLACE is the default
@@ -230,24 +230,14 @@ mkdir -p "$BASE_PATH"
 Determine which workflow YAML to use. If `--workflow <name>` was provided (from the parsed args), use the named variant; otherwise use the default:
 
 ```bash
-if [[ -n "$WORKFLOW_NAME" ]]; then
-  # Named workflow
-  if [[ -f ".claude/docs-${WORKFLOW_NAME}.yaml" ]]; then
-    YAML_PATH=".claude/docs-${WORKFLOW_NAME}.yaml"
-  else
-    YAML_PATH="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/defaults/docs-${WORKFLOW_NAME}.yaml"
-  fi
+if [[ -n "$WORKFLOW_NAME" && -f ".claude/docs-${WORKFLOW_NAME}.yaml" ]]; then
+  YAML_PATH=".claude/docs-${WORKFLOW_NAME}.yaml"
+elif [[ -f ".claude/docs-workflow.yaml" ]]; then
+  YAML_PATH=".claude/docs-workflow.yaml"
 else
-  # Default workflow
-  if [[ -f ".claude/docs-workflow.yaml" ]]; then
-    YAML_PATH=".claude/docs-workflow.yaml"
-  else
-    YAML_PATH="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/defaults/docs-workflow.yaml"
-  fi
+  YAML_PATH="${CLAUDE_PLUGIN_ROOT}/skills/docs-orchestrator/defaults/docs-workflow.yaml"
 fi
 ```
-
-If the resolved YAML path does not exist, **STOP** with: `"Workflow YAML not found: <path>"`
 
 ### 3. Compute execution plan
 
