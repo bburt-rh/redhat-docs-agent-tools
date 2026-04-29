@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Extract public API surface from source files using AST parsing.
 
-Wraps code-finder's Python API (claude_context.skills.api_surface)
-so the skill can call a script instead of relying on a CLI entry point
-being on $PATH.
+Wraps code-finder's Python API (claude_context.skills.api_surface).
+Requires the code-finder package to be installed (`python3 -m pip install
+code-finder`) or invoked via `uv run --with code-finder`.
 
 Usage:
     python3 api_surface.py --target /path/to/source \

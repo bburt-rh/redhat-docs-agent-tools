@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Review a draft document by checking claims against source code.
 
-Wraps code-finder's Python API (claude_context.skills.grounded_review)
-so the skill can call a script instead of relying on a CLI entry point
-being on $PATH.
+Wraps code-finder's Python API (claude_context.skills.grounded_review).
+Requires the code-finder package to be installed (`python3 -m pip install
+code-finder`) or invoked via `uv run --with code-finder`.
 
 Single draft:
     python3 grounded_review.py --repo /path/to/repo --draft /path/to/doc.adoc \
