@@ -72,21 +72,27 @@ If access to JIRA or Git is needed for supplemental research and fails, **STOP I
    - Identify undocumented features, outdated content, incomplete procedures
    - Check content journey phase distribution for gaps
 
-7. **Plan modules and assemblies**:
+7. **Classify audience per capability** (see "Audience classification" below):
+   - For each capability or feature identified in the requirements, determine whether it targets administrators, users/developers, or both
+   - Use code evidence and requirement context (CRDs, APIs, operator configs, user-facing resources) to make the classification
+   - When a capability targets both audiences, plan separate modules for each — do not collapse admin setup and user consumption into a single module
+
+8. **Plan modules and assemblies**:
    - Recommend module types (CONCEPT, PROCEDURE, REFERENCE)
    - Organize into user story assemblies by Main Jobs
    - Define reading order and shared prerequisites
    - Apply theme clustering when multiple related requirements exist
+   - Respect audience classification: admin-targeted and user-targeted modules belong in separate assemblies or sections, even when they originate from the same requirement
 
-8. **Populate the plan template** (from reference file):
+9. **Populate the plan template** (from reference file):
    - Fill in every section of the documentation plan template
    - Select 1-3 personas from the persona reference list
    - Replace ALL `[REPLACE: ...]` markers with actual content
    - Prepare the abbreviated JIRA ticket description (5 sections only)
 
-9. **Verify output** using the self-review checklist below
+10. **Verify output** using the self-review checklist below
 
-10. **Save output** to the designated location
+11. **Save output** to the designated location
 
 ## Doc impact assessment
 
@@ -128,6 +134,41 @@ When analyzing multiple related requirements, group them into thematic clusters 
 
 Clusters with High overlap risk should be consolidated into fewer modules.
 
+## Audience classification
+
+A single JIRA ticket or feature often spans multiple audiences. Before planning modules, classify each capability or feature by its target audience using evidence from the requirements, code, and CRD/API definitions.
+
+### Classification
+
+For each capability, assign one of:
+
+| Classification | Meaning | Typical signals |
+|----------------|---------|-----------------|
+| **Admin-only** | Only an administrator performs or cares about this | Operator installation, cluster-scoped CRD setup, RBAC policy, infrastructure configuration, platform-level tuning |
+| **User/Developer-only** | Only an end user or developer performs or cares about this | Application-level API calls, SDK usage, user-facing CLI commands, consuming a service exposed by the platform |
+| **Both** | The capability has an admin setup surface AND a separate user consumption surface | Admin creates/configures a CRD → users interact with the namespaced resources it exposes; admin enables a platform capability → developers consume it via API |
+
+### When a capability targets both audiences
+
+Do not merge admin and user content into a single module. Instead:
+
+1. **Plan separate modules** for the admin and user sides of the capability, each with the appropriate persona and placement
+2. **Admin modules** cover the setup, configuration, and lifecycle management side — e.g., installing an operator, defining a cluster-scoped CRD, configuring operator settings
+3. **User/Developer modules** cover the consumption side — e.g., creating namespaced custom resources, calling APIs exposed by the capability, integrating with the feature from application code
+4. **Cross-reference** between them: admin docs should note what the capability enables for users; user docs should link to admin prerequisites
+
+### How to determine the classification
+
+Use the available evidence — requirements text, code evidence, CRD definitions, API schemas:
+
+- A CRD with `scope: Cluster` that an operator watches → likely admin-facing setup
+- A CRD with `scope: Namespaced` that users create instances of → likely user-facing consumption
+- An API endpoint behind RBAC that requires cluster-admin → admin module
+- An API endpoint available to authenticated users → user/developer module
+- A single feature that involves both (operator installs a controller, users create CRs to use it) → classify as **Both** and plan separate modules
+
+If the evidence is ambiguous, flag it in the plan for SME review rather than defaulting to admin-only.
+
 ## Gap analysis
 
 Compare discovered content against documentation needs:
@@ -165,6 +206,7 @@ Before delivering the final plan, verify your output against these checks. Do no
 | **Impact consistency** | Doc impact grades align with the prioritization of recommended modules |
 | **Journey coverage** | Content journey phase mapping is included and has no unexplained gaps |
 | **JIRA description** | JIRA description template is fully populated — no `[REPLACE]` markers, no bracketed placeholder instructions |
+| **Audience coverage** | Every capability classified as "Both" has separate admin and user/developer modules planned — no audience collapsed into a single module |
 
 If verification fails, fix the issue before saving. If you cannot fix it, add a note in the plan explaining the limitation.
 
