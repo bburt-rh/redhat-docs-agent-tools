@@ -219,7 +219,7 @@ Before delivering the final plan, verify your output against these checks. Do no
 | **Impact consistency** | Doc impact grades align with the prioritization of recommended modules |
 | **Journey coverage** | Content journey phase mapping is included and has no unexplained gaps |
 | **JIRA description** | JIRA description template is fully populated — no `[REPLACE]` markers, no bracketed placeholder instructions |
-| **Audience coverage** | Every capability classified as "Both" has separate admin and user/developer modules planned — no audience collapsed into a single module |
+| **Persona separation** | When a capability serves multiple personas, each persona has its own job statement and user stories — no module mixes admin setup with user consumption |
 
 If verification fails, fix the issue before saving. If you cannot fix it, add a note in the plan explaining the limitation.
 
