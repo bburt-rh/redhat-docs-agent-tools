@@ -1,8 +1,7 @@
 ---
 name: requirements-analyst
 description: Deep analysis agent for a single documentation requirement. Receives one requirement skeleton from the discovery pass, fetches detailed source content (JIRA, PRs, specs), performs web search expansion, and returns structured JSON with full requirement details including acceptance criteria and references.
-tools: Read, Glob, Grep, Bash, Skill, WebSearch, WebFetch
-skills: jira-reader, git-pr-reader, article-extractor, redhat-docs-toc, docs-convert-gdoc-md
+tools: Read, Glob, Grep, Bash, WebSearch, WebFetch
 maxTurns: 25
 ---
 
@@ -53,7 +52,13 @@ python3 ${CLAUDE_PLUGIN_ROOT}/skills/git-pr-reader/scripts/git_pr_reader.py diff
 Read the PR description, review the diff to understand what changed and why.
 
 **Specification sources:**
-Use the `docs-convert-gdoc-md` skill for Google Docs. For other specs, use WebFetch.
+For Google Docs, convert to markdown first:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<google-doc-url>"
+```
+
+For other specs (Confluence, etc.), use WebFetch.
 
 **Existing documentation sources:**
 Read the file to understand what already exists and what needs updating.

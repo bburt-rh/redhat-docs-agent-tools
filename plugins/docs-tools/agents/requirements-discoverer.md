@@ -1,8 +1,7 @@
 ---
 name: requirements-discoverer
 description: Lightweight discovery agent for requirements analysis pass 1. Performs JIRA traversal, PR listing, and spec identification to produce a structured JSON skeleton of requirements. Does NOT perform deep analysis, web search expansion, or acceptance criteria writing — those belong to the per-requirement deep analysis pass.
-tools: Bash, Skill, WebFetch, Read, Write
-skills: jira-reader, git-pr-reader, docs-convert-gdoc-md, article-extractor, redhat-docs-toc
+tools: Bash, WebFetch, Read, Write
 maxTurns: 20
 ---
 
@@ -68,9 +67,13 @@ Record: PR title, description summary, changed file paths. Do NOT fetch full dif
 
 ### 4. Identify specifications
 
-For each Google Doc URL discovered:
+For each Google Doc URL discovered, convert to markdown:
 
-Use the `docs-convert-gdoc-md` skill to convert and read.
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/docs-convert-gdoc-md/scripts/gdoc2md.py "<google-doc-url>"
+```
+
+The script auto-detects URL type (document, slides, spreadsheet) and outputs markdown or CSV. Read the converted file to extract spec content.
 
 For other spec links (Confluence, etc.), note them as sources but do not deep-read.
 
