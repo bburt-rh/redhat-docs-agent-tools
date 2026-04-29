@@ -409,7 +409,10 @@ class JiraReader:
 
         for _ in range(max_depth):
             parent_key, parent_source = self._detect_parent(current_issue)
-            if not parent_key or parent_key in seen_keys:
+            if not parent_key:
+                break
+            if parent_key in seen_keys:
+                errors.append(f"Cycle detected in ancestor chain: {parent_key} already visited")
                 break
 
             seen_keys.add(parent_key)
@@ -423,6 +426,9 @@ class JiraReader:
                         "summary": None,
                         "status": None,
                         "issuetype": None,
+                        "priority": None,
+                        "assignee": None,
+                        "description": None,
                         "source": parent_source,
                         "error": "exists but not accessible (HTTP 403)",
                     })
