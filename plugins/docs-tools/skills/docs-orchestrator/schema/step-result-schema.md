@@ -215,7 +215,7 @@ When skipped (draft mode, no changes, or user declined):
 | `action` | string | `"created"`, `"found_existing"`, or `"skipped"` | Orchestrator |
 | `platform` | string | `"github"`, `"gitlab"`, or `"unknown"` | Informational |
 | `skipped` | boolean | Whether the step was skipped | Orchestrator |
-| `skip_reason` | string\|null | `"draft"`, `"no_changes"`, `"user_declined"`, `"on_default_branch"`, `"push_failed"`, `"commit_failed"`, `"create_failed"`, or `"unknown_platform"` when skipped | Orchestrator |
+| `skip_reason` | string\|null | `"draft"`, `"no_changes"`, `"no_files"`, `"user_declined"`, `"on_default_branch"`, `"push_failed"`, `"commit_failed"`, `"create_failed"`, or `"unknown_platform"` when skipped | Orchestrator |
 
 ### create-jira
 
