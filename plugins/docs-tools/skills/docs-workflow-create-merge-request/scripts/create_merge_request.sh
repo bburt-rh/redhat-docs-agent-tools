@@ -116,13 +116,35 @@ if [[ "$branch" == "main" || "$branch" == "master" ]]; then
         write_sidecar "" "$branch" false "" "skipped" "$platform" true "on_default_branch"
         exit 1
     fi
-    echo "On '$branch' — creating feature branch '$TICKET_LOWER'."
+
+    # Use upstream remote for forks, origin otherwise
+    if git_cmd remote get-url upstream &>/dev/null; then
+        base_remote="upstream"
+    else
+        base_remote="origin"
+    fi
+
+    echo "Fetching latest '$branch' from $base_remote..."
+    git_cmd fetch "$base_remote" "$branch"
+
+    # Stash working tree (includes untracked files from writing step)
+    git_cmd stash push --include-untracked -m "docs-pipeline: pre-branch stash" 2>/dev/null || true
+
+    git_cmd reset --hard "${base_remote}/${branch}"
+
+    echo "Creating feature branch '$TICKET_LOWER' from ${base_remote}/${branch}."
     if git_cmd rev-parse --verify "refs/heads/$TICKET_LOWER" &>/dev/null; then
         echo "Branch '$TICKET_LOWER' already exists — switching to it."
         git_cmd checkout "$TICKET_LOWER"
     else
         git_cmd checkout -b "$TICKET_LOWER"
     fi
+
+    # Restore written files (only if we actually stashed something)
+    if git_cmd stash list 2>/dev/null | grep -q "docs-pipeline: pre-branch stash"; then
+        git_cmd stash pop
+    fi
+
     branch="$TICKET_LOWER"
 fi
 
@@ -266,35 +288,73 @@ if [[ "$platform" == "github" ]]; then
     fi
 
 elif [[ "$platform" == "gitlab" ]]; then
-    mr_url=$(glab mr list --source-branch "$branch" -F json 2>/dev/null | jq -r '.[0].web_url // empty' || true)
+    is_fork=false
+    origin_project=$(echo "$remote_url" | sed 's|\.git$||' | sed 's|.*[:/]\([^/]*/[^/]*\)$|\1|')
+
+    if git_cmd remote get-url upstream &>/dev/null; then
+        is_fork=true
+        upstream_url=$(git_cmd remote get-url upstream)
+        upstream_project=$(echo "$upstream_url" | sed 's|\.git$||' \
+            | sed 's|.*[:/]\([^/]*/[^/]*\)$|\1|')
+    fi
+
+    # Check for existing MRs
+    if [[ "$is_fork" == true ]]; then
+        upstream_encoded=$(echo "$upstream_project" | sed 's|/|%2F|g')
+        mr_url=$(glab api "projects/$upstream_encoded/merge_requests?source_branch=$branch&state=opened" \
+            --jq '.[0].web_url // empty' 2>/dev/null || true)
+    else
+        mr_url=$(glab mr list --source-branch "$branch" -F json 2>/dev/null \
+            | jq -r '.[0].web_url // empty' || true)
+    fi
+
     if [[ -n "$mr_url" ]]; then
         action="found_existing"
         echo "Found existing MR: $mr_url"
     else
-        # Detect fork: if upstream remote exists, target it
-        glab_repo_flag=""
-        if git_cmd remote get-url upstream &>/dev/null; then
-            upstream_url=$(git_cmd remote get-url upstream)
-            upstream_project=$(echo "$upstream_url" \
-                | sed 's|\.git$||' \
-                | sed 's|.*[:/]\([^/]*/[^/]*\)$|\1|')
-            glab_repo_flag="--repo $upstream_project"
-        fi
+        if [[ "$is_fork" == true ]]; then
+            # Fork: POST to fork's endpoint with target_project_id
+            fork_encoded=$(echo "$origin_project" | sed 's|/|%2F|g')
+            upstream_id=$(glab api "projects/$upstream_encoded" --jq '.id' 2>/dev/null || true)
 
-        if create_output=$(glab mr create \
-            $glab_repo_flag \
-            --source-branch "$branch" \
-            --target-branch "$default_branch" \
-            --title "$pr_title" \
-            --description "$(cat "$desc_file")" \
-            --yes 2>&1); then
-            mr_url=$(echo "$create_output" | grep -o 'https://[^ ]*' | head -1)
-            action="created"
-            echo "Created MR: $mr_url"
+            if [[ -z "$upstream_id" ]]; then
+                echo "ERROR: Cannot resolve upstream project ID for '$upstream_project'" >&2
+                write_sidecar "$sha" "$branch" true "" "skipped" "$platform" true "create_failed"
+                exit 1
+            fi
+
+            mr_response=$(glab api --method POST "projects/$fork_encoded/merge_requests" \
+                -f source_branch="$branch" \
+                -f target_branch="$default_branch" \
+                -f "target_project_id=$upstream_id" \
+                -f "title=$pr_title" \
+                -f "description=$(cat "$desc_file")" 2>&1)
+            mr_url=$(echo "$mr_response" | jq -r '.web_url // empty' 2>/dev/null || true)
+
+            if [[ -n "$mr_url" ]]; then
+                action="created"
+                echo "Created MR (fork → upstream): $mr_url"
+            else
+                echo "ERROR: Failed to create MR: $mr_response" >&2
+                write_sidecar "$sha" "$branch" true "" "skipped" "$platform" true "create_failed"
+                exit 1
+            fi
         else
-            echo "ERROR: Failed to create MR: $create_output" >&2
-            write_sidecar "$sha" "$branch" true "" "skipped" "$platform" true "create_failed"
-            exit 1
+            # Non-fork: glab mr create directly
+            if create_output=$(glab mr create \
+                --source-branch "$branch" \
+                --target-branch "$default_branch" \
+                --title "$pr_title" \
+                --description "$(cat "$desc_file")" \
+                --yes 2>&1); then
+                mr_url=$(echo "$create_output" | grep -o 'https://[^ ]*' | head -1)
+                action="created"
+                echo "Created MR: $mr_url"
+            else
+                echo "ERROR: Failed to create MR: $create_output" >&2
+                write_sidecar "$sha" "$branch" true "" "skipped" "$platform" true "create_failed"
+                exit 1
+            fi
         fi
     fi
 
