@@ -157,7 +157,7 @@ fi
 writing_sidecar="$BASE_PATH/writing/step-result.json"
 if [[ ! -f "$writing_sidecar" ]]; then
     echo "No writing step-result.json found — nothing to commit."
-    write_sidecar "" "$branch" false "" "skipped" "$platform" true "no_changes"
+    write_sidecar "" "$branch" false "" "skipped" "$platform" true "no_files"
     exit 0
 fi
 
@@ -166,7 +166,7 @@ mapfile -t files < <(jq -r '.files[]' "$writing_sidecar" 2>/dev/null | grep "^$r
 
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "No files in manifest under $repo_prefix."
-    write_sidecar "" "$branch" false "" "skipped" "$platform" true "no_changes"
+    write_sidecar "" "$branch" false "" "skipped" "$platform" true "no_files"
     exit 0
 fi
 
@@ -325,15 +325,13 @@ elif [[ "$platform" == "gitlab" ]]; then
                 exit 1
             fi
 
-            mr_response=$(glab api --method POST "projects/$fork_encoded/merge_requests" \
+            if mr_response=$(glab api --method POST "projects/$fork_encoded/merge_requests" \
                 -f source_branch="$branch" \
                 -f target_branch="$default_branch" \
                 -f "target_project_id=$upstream_id" \
                 -f "title=$pr_title" \
-                -f "description=$(cat "$desc_file")" 2>&1)
-            mr_url=$(echo "$mr_response" | jq -r '.web_url // empty' 2>/dev/null || true)
-
-            if [[ -n "$mr_url" ]]; then
+                -f "description=$(cat "$desc_file")" 2>&1); then
+                mr_url=$(echo "$mr_response" | jq -r '.web_url // empty' 2>/dev/null || true)
                 action="created"
                 echo "Created MR (fork → upstream): $mr_url"
             else
