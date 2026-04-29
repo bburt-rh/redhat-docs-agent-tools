@@ -139,12 +139,10 @@ The workflow runs the following steps in order:
 2. **scope-req-audit** — query the code-finder index to classify each requirement as grounded, partial, or absent
 3. **planning** — create the documentation plan, scoping modules based on evidence status
 4. **code-evidence** — retrieve code snippets (function signatures, class definitions, configuration) for each plan topic
-5. **prepare-branch** — create a branch in the documentation repository
-6. **writing** — write documentation grounded in the retrieved code evidence
-7. **technical-review** — verify technical accuracy against the source code
-8. **style-review** — check style guide compliance
-9. **commit** — commit and push changes
-10. **create-mr** — open a merge request or pull request
+5. **writing** — write documentation grounded in the retrieved code evidence
+6. **technical-review** — verify technical accuracy against the source code
+7. **style-review** — check style guide compliance
+8. **create-merge-request** — create a branch (if needed), commit, push, and open a merge request or pull request
 
 Compared to the default workflow, the code-evidence variant produces documentation with fewer technical review issues because the writer has actual function signatures and implementation details to work from, rather than generating from the JIRA description alone.
 
@@ -211,7 +209,7 @@ To write files directly into your repo (update-in-place mode), run as follows:
 /docs-orchestrator PROJ-123
 ```
 
-In update-in-place mode, the orchestrator detects your repo's documentation framework (Antora, ccutil, etc.), creates a branch, writes files to the correct locations, and can commit and open a merge request.
+In update-in-place mode, the orchestrator detects your repo's documentation framework (Antora, ccutil, etc.), writes files to the correct locations, and can create a branch, commit, and open a merge request.
 
 ### Grounding documentation in source code
 
