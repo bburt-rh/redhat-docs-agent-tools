@@ -66,9 +66,7 @@ Agent:
 
 The PR URL bullet list is conditional — include those bullets only if `--pr` URLs were provided.
 
-After the agent completes, read `<DISCOVERY_FILE>` and verify it contains valid JSON with a `requirements` array.
-
-If the discovery file is missing or invalid, STOP with error: "Discovery agent did not produce valid output."
+After the agent completes, read `<DISCOVERY_FILE>`.
 
 If the discovery JSON has an `error` field set, STOP and report the error (likely an access failure).
 

@@ -73,8 +73,6 @@ Locate the `find_evidence.py` script from the code-evidence skill:
 FIND_EVIDENCE_SCRIPT="${CLAUDE_PLUGIN_ROOT}/skills/code-evidence/scripts/find_evidence.py"
 ```
 
-Verify the script exists. If not, STOP with error: "find_evidence.py not found at expected path."
-
 ### 2. Discover related repos
 
 Scan the source repo's top-level markdown files for GitHub and GitLab repository URLs that are not the current repo. This provides context for recommended actions when requirements are absent.
