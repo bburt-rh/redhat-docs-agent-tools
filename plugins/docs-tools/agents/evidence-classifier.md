@@ -70,13 +70,13 @@ Parse the search output. The result structure is:
 
 Note: single-query mode returns the result object directly (not wrapped in an array). Scores are under each result's `scores.combined`.
 
-Apply classification thresholds (provided in your prompt as `GROUNDED_THRESHOLD` and `ABSENT_THRESHOLD`):
+Apply classification thresholds (provided in your prompt as `GROUNDED_THRESHOLD` and `ABSENT_THRESHOLD`). Evaluate in this order — first match wins:
 
-**Grounded:** top hit `scores.combined` >= grounded threshold AND 2 or more results with scores above the absent threshold.
+1. **Absent:** top hit score < absent threshold, or the result set is empty.
 
-**Partial:** top hit score is between the absent and grounded thresholds, OR only 1 result scores above the grounded threshold.
+2. **Grounded:** top hit `scores.combined` >= grounded threshold AND 2 or more results with scores above the absent threshold.
 
-**Absent:** top hit score < absent threshold, or the result set is empty.
+3. **Partial:** everything else — top hit between absent and grounded thresholds, OR top hit >= grounded threshold but fewer than 2 results above the absent threshold.
 
 ### 4. Generate gap classification (partial/absent only)
 

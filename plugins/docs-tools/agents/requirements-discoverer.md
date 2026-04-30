@@ -19,9 +19,11 @@ export CLAUDE_PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel
 
 ## CRITICAL: Mandatory access verification
 
-**You MUST successfully access all primary sources before proceeding. NEVER make assumptions, inferences, or guesses about ticket content if access fails.**
+**You MUST successfully access JIRA before proceeding. NEVER make assumptions or guesses about ticket content if JIRA access fails.**
 
-If access to JIRA or Git fails, **STOP IMMEDIATELY**, report the exact error in your JSON output (set `"error"` field), and do not guess or infer content.
+If JIRA access fails, **STOP IMMEDIATELY**, report the exact error in your JSON output (set `"error"` field), and do not guess or infer content.
+
+Git access (for PR/MR details) is only required when PR/MR URLs are present — either provided manually or auto-discovered from the JIRA graph. If no PR/MR URLs exist, skip PR listing entirely. If a specific PR/MR URL fails to fetch, log it in the `errors` array but continue discovery from other sources.
 
 **Do not** prepend `source ~/.env` to bash commands — all Python scripts load `~/.env` automatically.
 
@@ -96,11 +98,14 @@ From the gathered sources, identify distinct documentation requirements. For eac
 
 ### 6. Build related tickets structure
 
-Assemble the related tickets data from the graph traversal. For each related ticket, include:
-- `key` — JIRA key
-- `url` — full JIRA URL
-- `summary` — ticket summary (one line)
-- `relation` — relationship type (parent, child, sibling, linked)
+Assemble the related tickets data from the graph traversal, grouped by relationship type. Each ticket entry includes `key`, `url`, and `summary`. The groups match the JIRA graph output:
+
+- `parent` — single object (or `null` if none)
+- `ancestors` — array ordered nearest to farthest
+- `children` — array
+- `siblings` — array
+- `linked` — array
+- `web_links` — array of external link URLs
 
 ## Output format
 
