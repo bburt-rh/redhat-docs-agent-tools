@@ -431,9 +431,7 @@ def _discover_from_jira(ticket, base_path, plugin_root):
 
     # Include all discovered repos in the result for logging
     if len(ranked) > 1 and result.get("status") == "resolved":
-        result["discovered_repos"] = {
-            _normalize_git_url(r["url"]): r["count"] for r in ranked
-        }
+        result["discovered_repos"] = {_normalize_git_url(r["url"]): r["count"] for r in ranked}
 
     return result
 
@@ -657,33 +655,35 @@ def _resolve_explicit_repos(repo_values, pr_urls, base_path):
             if clone_dir.exists():
                 if not _verify_existing_clone(clone_dir, ref, expected_repo_url=repo_value):
                     errors.append(
-                        f"Existing clone at {clone_dir} is invalid "
-                        "or points to a different repo."
+                        f"Existing clone at {clone_dir} is invalid or points to a different repo."
                     )
                     continue
             else:
                 if not _clone_repo(repo_value, clone_dir, ref):
                     errors.append(
-                        f"Cannot clone {repo_value}. "
-                        "For private repos, ensure gh is authenticated."
+                        f"Cannot clone {repo_value}. For private repos, ensure gh is authenticated."
                     )
                     continue
 
-            resolved_repos.append({
-                "repo_path": str(clone_dir),
-                "repo_url": repo_value,
-                "ref": ref,
-            })
+            resolved_repos.append(
+                {
+                    "repo_path": str(clone_dir),
+                    "repo_url": repo_value,
+                    "ref": ref,
+                }
+            )
         else:
             local = Path(repo_value)
             if not local.exists() or not local.is_dir():
                 errors.append(f"Source repo path does not exist: {repo_value}")
                 continue
-            resolved_repos.append({
-                "repo_path": str(local),
-                "repo_url": None,
-                "ref": None,
-            })
+            resolved_repos.append(
+                {
+                    "repo_path": str(local),
+                    "repo_url": None,
+                    "ref": None,
+                }
+            )
 
     if not resolved_repos:
         return {
