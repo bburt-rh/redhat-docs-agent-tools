@@ -1,6 +1,6 @@
 ---
 name: docs-workflow-start
-description: Interactive entry point for the docs workflow. When invoked with no CLI switches, uses AskUserQuestion to gather configuration. Supports full workflow, individual steps with auto-resolved prerequisites, and resuming previous runs. When switches are provided, passes through directly to docs-orchestrator.
+description: Interactive guided setup for the docs workflow. Only invoke this skill when the user explicitly requests docs-workflow-start (e.g., /docs-workflow-start). Do NOT invoke this skill when the user requests docs-orchestrator — that skill runs directly. When invoked with no CLI switches, uses AskUserQuestion to gather configuration. Supports full workflow, individual steps with auto-resolved prerequisites, and resuming previous runs. When switches are provided, passes through directly to docs-orchestrator.
 argument-hint: "[<ticket>] [--workflow <name>] [--pr <url>]... [--source-code-repo <url-or-path>] [--mkdocs] [--draft] [--docs-repo-path <path>] [--create-jira <PROJECT>]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Skill, AskUserQuestion
 ---

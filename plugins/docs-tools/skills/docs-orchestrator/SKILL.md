@@ -9,6 +9,8 @@ allowed-tools: Read, Write, Glob, Grep, Edit, Bash, Skill, AskUserQuestion
 
 # Docs Orchestrator
 
+**When the user invokes `/docs-orchestrator` or `/docs-tools:docs-orchestrator`, run THIS skill directly. Do NOT redirect to `docs-workflow-start` or any other skill.**
+
 Claude is the orchestrator. The YAML is a step list. The hook is a safety net.
 
 This skill teaches you how to run a documentation workflow pipeline. You read the step list from YAML, run each step skill sequentially, manage progress state via a JSON file, and handle iteration loops and confirmation gates.
