@@ -63,8 +63,7 @@ class JiraWriter:
         token = os.environ.get("JIRA_API_TOKEN") or os.environ.get("JIRA_AUTH_TOKEN")
         if not token:
             raise ValueError(
-                "JIRA_API_TOKEN (or JIRA_AUTH_TOKEN) not set."
-                " Add it to .env or ~/.env"
+                "JIRA_API_TOKEN (or JIRA_AUTH_TOKEN) not set. Add it to .env or ~/.env"
             )
 
         server = server or os.environ.get("JIRA_URL", "https://redhat.atlassian.net")
